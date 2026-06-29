@@ -535,9 +535,36 @@ export default function Login() {
 
         {/* Center Content */}
         <div className="relative z-10 text-center px-12">
-          <div className="w-20 h-20 rounded-2xl mx-auto mb-8 flex items-center justify-center animate-glow animate-pulse"
+          <div className="w-20 h-20 rounded-2xl mx-auto mb-8 flex items-center justify-center p-3 animate-glow animate-pulse"
                style={{ background: 'linear-gradient(135deg, #2E7D32, #1B5E20)' }}>
-            <Activity className="w-10 h-10 text-white" />
+            <svg viewBox="0 0 400 400" className="w-12 h-12 text-white" fill="none">
+              <g>
+                <g transform="translate(200, 140) rotate(0)">
+                  <rect x="-45" y="-75" width="90" height="130" rx="45" ry="45" fill="none" stroke="currentColor" strokeWidth="16" strokeLinejoin="round"/>
+                  <rect x="-33" y="-63" width="66" height="106" rx="33" ry="33" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" strokeOpacity="0.7"/>
+                </g>
+                <g transform="translate(260, 200) rotate(90)">
+                  <rect x="-45" y="-75" width="90" height="130" rx="45" ry="45" fill="none" stroke="currentColor" strokeWidth="16" strokeLinejoin="round"/>
+                  <rect x="-33" y="-63" width="66" height="106" rx="33" ry="33" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" strokeOpacity="0.7"/>
+                </g>
+                <g transform="translate(200, 260) rotate(180)">
+                  <rect x="-45" y="-75" width="90" height="130" rx="45" ry="45" fill="none" stroke="currentColor" strokeWidth="16" strokeLinejoin="round"/>
+                  <rect x="-33" y="-63" width="66" height="106" rx="33" ry="33" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" strokeOpacity="0.7"/>
+                </g>
+                <g transform="translate(140, 200) rotate(270)">
+                  <rect x="-45" y="-75" width="90" height="130" rx="45" ry="45" fill="none" stroke="currentColor" strokeWidth="16" strokeLinejoin="round"/>
+                  <rect x="-33" y="-63" width="66" height="106" rx="33" ry="33" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" strokeOpacity="0.7"/>
+                </g>
+                <path d="M 220 120 A 45 45 0 0 1 245 155" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round"/>
+                <path d="M 220 120 A 45 45 0 0 1 245 155" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.7"/>
+                <path d="M 245 245 A 45 45 0 0 1 200 280" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round"/>
+                <path d="M 245 245 A 45 45 0 0 1 200 280" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.7"/>
+                <path d="M 180 280 A 45 45 0 0 1 155 245" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round"/>
+                <path d="M 180 280 A 45 45 0 0 1 155 245" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.7"/>
+                <path d="M 155 155 A 45 45 0 0 1 200 120" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round"/>
+                <path d="M 155 155 A 45 45 0 0 1 200 120" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.7"/>
+              </g>
+            </svg>
           </div>
           <h2 className="text-3xl font-bold text-dark-text mb-3">Induja Medical Store</h2>
           <p className="text-dark-muted text-sm leading-relaxed max-w-xs mx-auto mb-10">

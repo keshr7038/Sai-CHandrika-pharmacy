@@ -90,8 +90,35 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center">
-              <Activity className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-lg bg-white/15 backdrop-blur-sm flex items-center justify-center p-1">
+              <svg viewBox="0 0 400 400" className="w-6 h-6 text-white" fill="none">
+                <g>
+                  <g transform="translate(200, 140) rotate(0)">
+                    <rect x="-45" y="-75" width="90" height="130" rx="45" ry="45" fill="none" stroke="currentColor" strokeWidth="16" strokeLinejoin="round"/>
+                    <rect x="-33" y="-63" width="66" height="106" rx="33" ry="33" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" strokeOpacity="0.7"/>
+                  </g>
+                  <g transform="translate(260, 200) rotate(90)">
+                    <rect x="-45" y="-75" width="90" height="130" rx="45" ry="45" fill="none" stroke="currentColor" strokeWidth="16" strokeLinejoin="round"/>
+                    <rect x="-33" y="-63" width="66" height="106" rx="33" ry="33" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" strokeOpacity="0.7"/>
+                  </g>
+                  <g transform="translate(200, 260) rotate(180)">
+                    <rect x="-45" y="-75" width="90" height="130" rx="45" ry="45" fill="none" stroke="currentColor" strokeWidth="16" strokeLinejoin="round"/>
+                    <rect x="-33" y="-63" width="66" height="106" rx="33" ry="33" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" strokeOpacity="0.7"/>
+                  </g>
+                  <g transform="translate(140, 200) rotate(270)">
+                    <rect x="-45" y="-75" width="90" height="130" rx="45" ry="45" fill="none" stroke="currentColor" strokeWidth="16" strokeLinejoin="round"/>
+                    <rect x="-33" y="-63" width="66" height="106" rx="33" ry="33" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" strokeOpacity="0.7"/>
+                  </g>
+                  <path d="M 220 120 A 45 45 0 0 1 245 155" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round"/>
+                  <path d="M 220 120 A 45 45 0 0 1 245 155" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.7"/>
+                  <path d="M 245 245 A 45 45 0 0 1 200 280" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round"/>
+                  <path d="M 245 245 A 45 45 0 0 1 200 280" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.7"/>
+                  <path d="M 180 280 A 45 45 0 0 1 155 245" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round"/>
+                  <path d="M 180 280 A 45 45 0 0 1 155 245" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.7"/>
+                  <path d="M 155 155 A 45 45 0 0 1 200 120" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round"/>
+                  <path d="M 155 155 A 45 45 0 0 1 200 120" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.7"/>
+                </g>
+              </svg>
             </div>
             <div className="hidden sm:block">
               <h1 className="text-sm font-bold text-white leading-tight">Induja Medical</h1>
@@ -252,8 +279,35 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
             {/* Mobile Menu Header */}
             <div className="h-14 px-4 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center">
-                  <Activity className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center p-1">
+                  <svg viewBox="0 0 400 400" className="w-6 h-6 text-white" fill="none">
+                    <g>
+                      <g transform="translate(200, 140) rotate(0)">
+                        <rect x="-45" y="-75" width="90" height="130" rx="45" ry="45" fill="none" stroke="currentColor" strokeWidth="16" strokeLinejoin="round"/>
+                        <rect x="-33" y="-63" width="66" height="106" rx="33" ry="33" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" strokeOpacity="0.7"/>
+                      </g>
+                      <g transform="translate(260, 200) rotate(90)">
+                        <rect x="-45" y="-75" width="90" height="130" rx="45" ry="45" fill="none" stroke="currentColor" strokeWidth="16" strokeLinejoin="round"/>
+                        <rect x="-33" y="-63" width="66" height="106" rx="33" ry="33" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" strokeOpacity="0.7"/>
+                      </g>
+                      <g transform="translate(200, 260) rotate(180)">
+                        <rect x="-45" y="-75" width="90" height="130" rx="45" ry="45" fill="none" stroke="currentColor" strokeWidth="16" strokeLinejoin="round"/>
+                        <rect x="-33" y="-63" width="66" height="106" rx="33" ry="33" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" strokeOpacity="0.7"/>
+                      </g>
+                      <g transform="translate(140, 200) rotate(270)">
+                        <rect x="-45" y="-75" width="90" height="130" rx="45" ry="45" fill="none" stroke="currentColor" strokeWidth="16" strokeLinejoin="round"/>
+                        <rect x="-33" y="-63" width="66" height="106" rx="33" ry="33" fill="none" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" strokeOpacity="0.7"/>
+                      </g>
+                      <path d="M 220 120 A 45 45 0 0 1 245 155" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round"/>
+                      <path d="M 220 120 A 45 45 0 0 1 245 155" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.7"/>
+                      <path d="M 245 245 A 45 45 0 0 1 200 280" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round"/>
+                      <path d="M 245 245 A 45 45 0 0 1 200 280" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.7"/>
+                      <path d="M 180 280 A 45 45 0 0 1 155 245" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round"/>
+                      <path d="M 180 280 A 45 45 0 0 1 155 245" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.7"/>
+                      <path d="M 155 155 A 45 45 0 0 1 200 120" fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round"/>
+                      <path d="M 155 155 A 45 45 0 0 1 200 120" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.7"/>
+                    </g>
+                  </svg>
                 </div>
                 <span className="text-sm font-bold text-gray-800">Induja Medical</span>
               </div>
