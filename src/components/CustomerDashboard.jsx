@@ -4,7 +4,8 @@ import FirstAidKitsSection from './FirstAidKitsSection';
 import {
   Search, ShoppingBag, Heart, Shield, Stethoscope, FlaskConical,
   ArrowRight, Pill, Star, TrendingUp, Clock, ShoppingCart,
-  Sparkles, ChevronRight, BadgePercent, Truck, Package, Plus, Minus
+  Sparkles, ChevronRight, BadgePercent, Truck, Package, Plus, Minus,
+  Activity, Phone, MessageSquare
 } from 'lucide-react';
 
 const healthCategories = [
@@ -211,38 +212,207 @@ export default function CustomerDashboard({ setCurrentTab, searchQuery, setSearc
         </div>
       </section>
 
-      {/* ===== MY RECENT ORDERS (if any) ===== */}
-      {myOrders.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-4">
+      {/* ===== RECENT ORDERS & EMERGENCY SERVICES GRID ===== */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Recent Orders (Takes 2 columns) */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-gray-800">My Recent Orders</h2>
-            <button onClick={() => setCurrentTab('orders')} className="text-sm font-semibold text-primary-600 hover:underline flex items-center gap-1">
-              View All <ArrowRight className="w-4 h-4" />
-            </button>
+            {myOrders.length > 0 && (
+              <button 
+                onClick={() => setCurrentTab('orders')} 
+                className="text-sm font-semibold text-primary-600 hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                View All <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
-          <div className="space-y-3">
-            {myOrders.slice(0, 3).map((order) => (
-              <div key={order.id} className="card p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
-                    <Package className="w-5 h-5 text-primary-600" />
+          {myOrders.length > 0 ? (
+            <div className="grid grid-cols-1 gap-3">
+              {myOrders.slice(0, 3).map((order) => (
+                <div key={order.id} className="card p-4 flex items-center justify-between bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+                      <Package className="w-5 h-5 text-primary-600" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-gray-800">#{order.id.slice(-8).toUpperCase()}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          order.paymentStatus === 'Success' || order.paymentStatus === 'paid' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'
+                        }`}>
+                          {order.paymentStatus}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {order.items?.length || 0} item(s) • {new Date(order.date).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">{order.id}</p>
-                    <p className="text-xs text-gray-400">{order.items.length} item(s) • {new Date(order.date).toLocaleDateString()}</p>
+                  <div className="text-right flex items-center gap-4">
+                    <div>
+                      <p className="text-sm font-bold text-primary-700">{formatCurrency(order.total)}</p>
+                    </div>
+                    <button 
+                      onClick={() => setCurrentTab('orders')} 
+                      className="btn-outline btn-xs rounded-lg px-2.5 py-1 text-[11px] border-primary-200 text-primary-700 hover:bg-primary-600 hover:text-white transition-all cursor-pointer font-bold"
+                    >
+                      Track
+                    </button>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-primary-700">{formatCurrency(order.total)}</p>
-                  <span className={`badge ${order.paymentStatus === 'Success' ? 'badge-success' : 'badge-warning'}`}>
-                    {order.paymentStatus}
-                  </span>
+              ))}
+            </div>
+          ) : (
+            <div className="card p-6 bg-white/80 backdrop-blur-sm text-center border border-dashed border-gray-200 h-[264px] flex flex-col items-center justify-center">
+              <ShoppingBag className="w-12 h-12 text-primary-500/40 mb-3" />
+              <h3 className="text-sm font-bold text-gray-700">Ready to order your medicines?</h3>
+              <p className="text-xs text-gray-400 mt-1 max-w-sm">Browse our wide range of medicines and daily essentials and get them delivered to your doorstep.</p>
+              <button 
+                onClick={() => setCurrentTab('shop')} 
+                className="btn-primary btn-sm mt-4 rounded-xl px-5 py-2 flex items-center gap-1.5 cursor-pointer shadow-md"
+              >
+                Start Shopping <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Right: Emergency Services (Takes 1 column) */}
+        <div className="lg:col-span-1 bg-white/95 backdrop-blur-sm rounded-3xl border border-gray-100 shadow-md overflow-hidden flex flex-col">
+          {/* Header Banner */}
+          <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-3.5 flex items-center gap-3.5 relative overflow-hidden">
+            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0 shadow-inner">
+              <Activity className="w-5.5 h-5.5 text-white animate-pulse" />
+            </div>
+            <div>
+              <h3 className="text-base font-black tracking-tight leading-tight">Emergency Services</h3>
+              <p className="text-[10px] text-white/80 font-medium mt-0.5">Quick Help When You Need It</p>
+            </div>
+            <div className="absolute right-0 bottom-0 translate-x-3 translate-y-3 w-12 h-12 rounded-full bg-white/5" />
+          </div>
+
+          {/* Sub-widgets body */}
+          <div className="p-3.5 space-y-3.5 flex-1">
+            
+            {/* Ambulance Services */}
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="w-5.5 h-5.5 rounded-lg bg-green-50 flex items-center justify-center">
+                  <span className="text-xs font-bold">🚑</span>
+                </div>
+                <h4 className="text-[10px] font-bold text-gray-800 uppercase tracking-wider">Ambulance Services</h4>
+              </div>
+              <a 
+                href="tel:108"
+                className="w-full bg-gradient-to-r from-green-600 to-green-750 hover:from-green-700 hover:to-green-800 text-white rounded-xl py-2 px-3.5 flex items-center justify-between group shadow-sm transition-all duration-200 cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Phone className="w-4 h-4 text-white animate-bounce" />
+                  <div className="text-left">
+                    <p className="text-xs font-black tracking-wide">Call Ambulance</p>
+                    <p className="text-[9px] text-white/80">Call Now: 108</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-white/80 group-hover:translate-x-1 transition-transform" />
+              </a>
+            </div>
+
+            {/* Nearby Hospitals */}
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="w-5.5 h-5.5 rounded-lg bg-green-50 flex items-center justify-center">
+                  <span className="text-xs font-bold">👥</span>
+                </div>
+                <h4 className="text-[10px] font-bold text-gray-800 uppercase tracking-wider">Nearby Hospitals</h4>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs bg-gray-50/50 p-2 rounded-xl border border-gray-100/60">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                    <span className="font-semibold text-gray-700 truncate text-[11px]">City Hospital - Bhongir</span>
+                  </div>
+                  <a 
+                    href="https://www.google.com/maps/search/?api=1&query=City+Hospital+Bhongir"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="bg-green-600 hover:bg-green-700 text-white text-[10px] py-1 px-3 rounded-lg shadow-sm font-bold transition-all shrink-0 cursor-pointer text-center"
+                  >
+                    View on Map
+                  </a>
+                </div>
+                <div className="flex items-center justify-between text-xs bg-gray-50/50 p-2 rounded-xl border border-gray-100/60">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                    <span className="font-semibold text-gray-700 truncate text-[11px]">Apollo Clinic - Hyderabad</span>
+                  </div>
+                  <a 
+                    href="https://www.google.com/maps/search/?api=1&query=Apollo+Clinic+Hyderabad"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="bg-green-600 hover:bg-green-700 text-white text-[10px] py-1 px-3 rounded-lg shadow-sm font-bold transition-all shrink-0 cursor-pointer text-center"
+                  >
+                    View on Map
+                  </a>
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Pharmacy Emergency Contact */}
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="w-5.5 h-5.5 rounded-lg bg-green-50 flex items-center justify-center">
+                  <span className="text-xs font-bold">📍</span>
+                </div>
+                <h4 className="text-[10px] font-bold text-gray-800 uppercase tracking-wider">Pharmacy Emergency Contact</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <a 
+                  href="tel:+919876543210"
+                  className="bg-green-600 hover:bg-green-700 text-white rounded-xl py-2 px-2 flex items-center justify-center gap-1 shadow-sm text-[10px] font-bold transition-all cursor-pointer text-center"
+                >
+                  <Phone className="w-3 h-3" />
+                  Call Medical Shop
+                </a>
+                <a 
+                  href="https://wa.me/919876543210?text=I%2520need%252520emergency%2520medical%2520assistance"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="bg-green-600 hover:bg-green-700 text-white rounded-xl py-2 px-2 flex items-center justify-center gap-1 shadow-sm text-[10px] font-bold transition-all cursor-pointer text-center"
+                >
+                  <MessageSquare className="w-3 h-3" />
+                  Chat on WhatsApp
+                </a>
+              </div>
+            </div>
+
+            {/* Emergency Tips */}
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className="w-5.5 h-5.5 rounded-lg bg-green-50 flex items-center justify-center">
+                  <span className="text-xs font-bold">➕</span>
+                </div>
+                <h4 className="text-[10px] font-bold text-gray-800 uppercase tracking-wider">Emergency Tips</h4>
+              </div>
+              <ul className="space-y-1 bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/60">
+                <li className="flex items-start gap-1.5 text-[11px] text-gray-600">
+                  <span className="text-green-500 font-bold mt-0.5">✔</span>
+                  <span>Keep first-aid kit ready</span>
+                </li>
+                <li className="flex items-start gap-1.5 text-[11px] text-gray-600">
+                  <span className="text-green-500 font-bold mt-0.5">✔</span>
+                  <span>Save emergency numbers</span>
+                </li>
+                <li className="flex items-start gap-1.5 text-[11px] text-gray-600">
+                  <span className="text-green-500 font-bold mt-0.5">✔</span>
+                  <span>Know nearest hospital routes</span>
+                </li>
+              </ul>
+            </div>
+
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* ===== QUICK STATS FOR CUSTOMER ===== */}
       <section className="grid grid-cols-3 gap-4">
