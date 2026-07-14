@@ -705,12 +705,12 @@ export default function Sales({
                   <QrCode className="w-6 h-6 text-primary-600" />
                 </div>
                 <h3 className="text-base font-bold text-gray-800">Scan QR Code to Pay</h3>
-                <p className="text-xs text-gray-500">Scan using PhonePe / GPay / Paytm to pay <strong className="text-primary-600 font-bold">₹{mockTxn?.total.toFixed(2)}</strong></p>
+                <p className="text-xs text-gray-500">Scan using PhonePe / GPay / Paytm to pay <strong className="text-primary-600 font-bold">₹{(mockTxn?.total || 0).toFixed(2)}</strong></p>
                 
                 {/* Dynamic QR Code */}
                 <div className="inline-block p-3 bg-white rounded-xl border-2 border-primary-100 shadow-sm mx-auto">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Sai%20Chandrika%20Pharmacy&am=${mockTxn?.total}&cu=INR&tn=Invoice%20${mockTxn?.id}`}
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Sai%20Chandrika%20Pharmacy&am=${mockTxn?.total || 0}&cu=INR&tn=Invoice%20${mockTxn?.id || ''}`}
                     alt="UPI QR Code"
                     className="w-44 h-44 rounded-lg object-contain mx-auto"
                   />
