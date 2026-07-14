@@ -13,6 +13,7 @@ import Purchases from './components/Purchases';
 import Vendors from './components/Vendors';
 import Transactions from './components/Transactions';
 import Profile from './components/Profile';
+import EmergencyPage from './components/EmergencyPage';
 import AIChat from './components/AIChat';
 import Customers from './components/Customers';
 import './App.css';
@@ -98,6 +99,7 @@ function CustomerDashboardWrapper() {
           />
         );
       case 'orders': return <Transactions />;
+      case 'emergency': return <EmergencyPage />;
       case 'ai-assistant': return <AIChat />;
       case 'profile': return <Profile />;
       default: 

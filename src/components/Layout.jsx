@@ -50,6 +50,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
     { id: 'dashboard', label: 'Home', icon: Home },
     { id: 'shop', label: 'Shop Medicines', icon: ShoppingBag, badge: (cart && cart.length > 0) ? `${cart.reduce((s, i) => s + i.quantity, 0)}` : null, badgeColor: 'bg-accent-600' },
     { id: 'orders', label: 'My Orders', icon: ClipboardList },
+    { id: 'emergency', label: 'Emergency Services', icon: Activity, badge: 'SOS', badgeColor: 'bg-red-500 font-extrabold animate-pulse' },
     { id: 'ai-assistant', label: 'AI Assistant', icon: Bot, badge: 'New', badgeColor: 'bg-accent-600' },
     { id: 'profile', label: 'My Profile', icon: UserCircle },
   ];
