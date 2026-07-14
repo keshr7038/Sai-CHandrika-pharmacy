@@ -206,7 +206,7 @@ export default function Transactions() {
     const element = document.createElement('div');
     element.innerHTML = `
       <div style="font-family:Arial,sans-serif;padding:25px;color:#333;">
-        <h2 style="color:#1B5E20;margin-bottom:4px;margin-top:0;">Shekar Medicals</h2>
+        <h2 style="color:#1B5E20;margin-bottom:4px;margin-top:0;">Sai Chandrika Pharmacy</h2>
         <p style="color:#666;font-size:13px;margin-top:0;">${user?.role === 'customer' ? 'My Order History' : 'Transaction Report'} — Generated ${new Date().toLocaleString('en-IN')}</p>
         <hr style="border:none;border-top:2px solid #1B5E20;margin:12px 0;"/>
         
@@ -227,7 +227,7 @@ export default function Transactions() {
           </tbody>
         </table>
         <p style="font-size:10px;color:#999;margin-top:25px;text-align:center;border-top:1px dashed #eee;padding-top:10px;">
-          This is a computer-generated document. © ${new Date().getFullYear()} Shekar Medicals.
+          This is a computer-generated document. © ${new Date().getFullYear()} Sai Chandrika Pharmacy.
         </p>
       </div>
     `;
@@ -721,7 +721,7 @@ export default function Transactions() {
                         <head><title>Invoice ${selectedInvoice.id}</title></head>
                         <body style="font-family:Arial,sans-serif;padding:30px;max-width:600px;margin:auto;">
                           <div style="text-align:center;margin-bottom:20px;">
-                            <h2 style="color:#1B5E20;margin-bottom:2px;">🏥 Shekar Medicals</h2>
+                            <h2 style="color:#1B5E20;margin-bottom:2px;">🏥 Sai Chandrika Pharmacy</h2>
                             <p style="color:#666;font-size:11px;margin:0;">Your Trusted Health Partner | DL-2026-RX-44821</p>
                             <p style="color:#999;font-size:10px;margin:4px 0 0 0;">123 Health Avenue, Medical District</p>
                           </div>
@@ -750,7 +750,7 @@ export default function Transactions() {
                           <div style="margin-top:16px;padding:10px;background:#f9f9f9;border-radius:8px;font-size:11px;color:#666;">
                             <strong>Payment:</strong> ${selectedInvoice.paymentMethod} — ${selectedInvoice.paymentStatus} | <strong>Cashier:</strong> ${selectedInvoice.cashier}
                           </div>
-                          <p style="text-align:center;font-size:10px;color:#aaa;margin-top:20px;">Thank you for choosing Shekar Medicals! 💚</p>
+                          <p style="text-align:center;font-size:10px;color:#aaa;margin-top:20px;">Thank you for choosing Sai Chandrika Pharmacy! 💚</p>
                         </body>
                       </html>
                     `);
@@ -777,7 +777,7 @@ export default function Transactions() {
               {/* Store & Invoice Info */}
               <div className="flex flex-col sm:flex-row justify-between gap-4">
                 <div>
-                  <h4 className="text-base font-bold text-primary-700">🏥 Shekar Medicals</h4>
+                  <h4 className="text-base font-bold text-primary-700">🏥 Sai Chandrika Pharmacy</h4>
                   <p className="text-[11px] text-gray-400 mt-0.5">
                     Your Trusted Health Partner
                   </p>

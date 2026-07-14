@@ -106,7 +106,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const restoreSession = async () => {
       try {
-        const storedUser = localStorage.getItem('shekarmedicals_user');
+        const storedUser = localStorage.getItem('saichandrika_user');
         if (storedUser) {
           setUser(JSON.parse(storedUser));
         }
@@ -334,7 +334,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        const storedUser = localStorage.getItem('shekarmedicals_user');
+        const storedUser = localStorage.getItem('saichandrika_user');
         const currentUser = storedUser ? JSON.parse(storedUser) : null;
         
         if (!currentUser || currentUser.id !== session.user.id) {
@@ -351,7 +351,7 @@ export const AppProvider = ({ children }) => {
               createdAt: session.user.created_at
             };
             setUser(userData);
-            localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
+            localStorage.setItem('saichandrika_user', JSON.stringify(userData));
             addNotification("Logged in successfully as Owner!", "success");
           } else {
             const { data: customerProfile } = await supabase
@@ -371,14 +371,14 @@ export const AppProvider = ({ children }) => {
                 lastLogin: customerProfile.last_login
               };
               setUser(userData);
-              localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
+              localStorage.setItem('saichandrika_user', JSON.stringify(userData));
               addNotification("Logged in successfully as Customer!", "success");
             }
           }
         }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-        localStorage.removeItem('shekarmedicals_user');
+        localStorage.removeItem('saichandrika_user');
       }
     });
 
@@ -416,7 +416,7 @@ export const AppProvider = ({ children }) => {
       };
       
       setUser(userData);
-      localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
+      localStorage.setItem('saichandrika_user', JSON.stringify(userData));
       addNotification("Logged in successfully as Owner!", "success");
       return { success: true };
     } catch (err) {
@@ -477,7 +477,7 @@ export const AppProvider = ({ children }) => {
       };
 
       setUser(userData);
-      localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
+      localStorage.setItem('saichandrika_user', JSON.stringify(userData));
       addNotification("Logged in successfully as Customer!", "success");
       return { success: true };
     } catch (err) {
@@ -493,7 +493,7 @@ export const AppProvider = ({ children }) => {
       console.warn("Failed to sign out from Supabase:", e.message);
     }
     setUser(null);
-    localStorage.removeItem('shekarmedicals_user');
+    localStorage.removeItem('saichandrika_user');
     setCart([]);
     setMedicines([]);
     setVendors([]);
@@ -853,7 +853,7 @@ export const AppProvider = ({ children }) => {
   // =============================================
   const [aiMessages, setAiMessages] = useState([{
     id: 'ai-welcome', role: 'assistant',
-    content: 'Hello! 👋 I\'m your Shekar AI Medical Assistant. I can help you with:\n\n• **Medicine information** — dosage, uses, side effects\n• **Stock queries** — check availability and pricing\n• **Health tips** — general wellness advice\n• **Order assistance** — help with prescriptions\n\nHow can I assist you today?',
+    content: 'Hello! 👋 I\'m your Sai Chandrika AI Medical Assistant. I can help you with:\n\n• **Medicine information** — dosage, uses, side effects\n• **Stock queries** — check availability and pricing\n• **Health tips** — general wellness advice\n• **Order assistance** — help with prescriptions\n\nHow can I assist you today?',
     timestamp: new Date().toISOString()
   }]);
 

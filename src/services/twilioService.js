@@ -1,5 +1,5 @@
 /**
- * Twilio SMS Service for Shekar Medicals
+ * Twilio SMS Service for Sai Chandrika Pharmacy
  * 
  * This module handles real SMS sending via Twilio REST API.
  * For production, route these calls through a Supabase Edge Function
@@ -159,18 +159,18 @@ export async function sendSmsWithFallback(to, body) {
 
 // SMS Templates
 export const SMS_TEMPLATES = {
-  lowStock: (medicineName, currentStock, minStock, shopName = 'Shekar Medicals') =>
-    `⚠️ LOW STOCK ALERT — ${shopName}\n\n${medicineName} has only ${currentStock} units left (minimum: ${minStock}).\n\nPlease restock immediately to avoid stockouts.\n\n— Shekar Medicals`,
+  lowStock: (medicineName, currentStock, minStock, shopName = 'Sai Chandrika Pharmacy') =>
+    `⚠️ LOW STOCK ALERT — ${shopName}\n\n${medicineName} has only ${currentStock} units left (minimum: ${minStock}).\n\nPlease restock immediately to avoid stockouts.\n\n— Sai Chandrika Pharmacy`,
 
-  paymentSuccess: (invoiceId, amount, shopName = 'Shekar Medicals') =>
-    `✅ Payment Received — ${shopName}\n\nYour payment of ₹${amount} for Invoice ${invoiceId} has been received successfully.\n\nThank you for shopping with us! Stay healthy! 🏥\n\n— Shekar Medicals`,
+  paymentSuccess: (invoiceId, amount, shopName = 'Sai Chandrika Pharmacy') =>
+    `✅ Payment Received — ${shopName}\n\nYour payment of ₹${amount} for Invoice ${invoiceId} has been received successfully.\n\nThank you for shopping with us! Stay healthy! 🏥\n\n— Sai Chandrika Pharmacy`,
 
   paymentReminder: (invoiceId, amount) =>
-    `📩 Payment Reminder\n\nYour invoice ${invoiceId} of ₹${amount} is pending.\n\nPlease complete the payment at Shekar Medicals.\n\n— Shekar Medicals`,
+    `📩 Payment Reminder\n\nYour invoice ${invoiceId} of ₹${amount} is pending.\n\nPlease complete the payment at Sai Chandrika Pharmacy.\n\n— Sai Chandrika Pharmacy`,
 
   vendorDueReminder: (vendorName, dueAmount) =>
-    `📩 Payment Reminder\n\nDear ${vendorName}, you have an outstanding balance of ₹${dueAmount} with Shekar Medicals.\n\nKindly clear the dues at the earliest.\n\nThank you!`,
+    `📩 Payment Reminder\n\nDear ${vendorName}, you have an outstanding balance of ₹${dueAmount} with Sai Chandrika Pharmacy.\n\nKindly clear the dues at the earliest.\n\nThank you!`,
 
   expiryAlert: (medicineName, expiryDate) =>
-    `⚠️ EXPIRY ALERT\n\n${medicineName} is expiring on ${expiryDate}.\n\nPlease review and take necessary action.\n\n— Shekar Medicals`,
+    `⚠️ EXPIRY ALERT\n\n${medicineName} is expiring on ${expiryDate}.\n\nPlease review and take necessary action.\n\n— Sai Chandrika Pharmacy`,
 };

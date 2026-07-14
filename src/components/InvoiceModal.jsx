@@ -133,7 +133,7 @@ export default function InvoiceModal({ invoice, onClose }) {
     // Simulated PDF download
     const element = document.createElement('a');
     const content = `
-APOLLO MEDICAL STORE — TAX INVOICE
+SAI CHANDRIKA PHARMACY — TAX INVOICE
 =====================================
 Invoice: ${invoice.id}
 Date: ${new Date(invoice.date).toLocaleString()}
@@ -150,7 +150,7 @@ NET TOTAL: ₹${invoice.total.toFixed(2)}
 Payment: ${invoice.paymentMethod}
 Status: ${invoice.paymentStatus}
 =====================================
-Thank you for choosing Shekar Medicals!
+Thank you for choosing Sai Chandrika Pharmacy!
     `.trim();
     const file = new Blob([content], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
@@ -190,7 +190,7 @@ Thank you for choosing Shekar Medicals!
           {/* Store Header */}
           <div className="text-center mb-5 pb-5 border-b border-dashed border-gray-200">
             <h2 className="text-xl font-extrabold text-primary-700 tracking-tight">
-              APOLLO MEDICAL STORE
+              SAI CHANDRIKA PHARMACY
             </h2>
             <p className="text-xs text-gray-400 mt-1">
               123 Health Avenue, Medical District, Mumbai — 400001
@@ -303,7 +303,7 @@ Thank you for choosing Shekar Medicals!
           {/* Footer */}
           <div className="text-center mb-4">
             <p className="text-xs text-gray-400 italic">
-              Thank you for choosing Shekar Medicals!
+              Thank you for choosing Sai Chandrika Pharmacy!
             </p>
             <p className="text-[10px] text-gray-300 mt-1">
               This is a computer-generated invoice.
@@ -428,7 +428,7 @@ Thank you for choosing Shekar Medicals!
                         {/* Dynamic QR Code */}
                         <div className="inline-block p-3 bg-white rounded-xl border-2 border-primary-100 shadow-sm mx-auto">
                           <img
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Shekar%20Medicals&am=${invoice.total}&cu=INR&tn=Invoice%20${invoice.id}`}
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Sai%20Chandrika%20Pharmacy&am=${invoice.total}&cu=INR&tn=Invoice%20${invoice.id}`}
                             alt="UPI QR Code"
                             className="w-44 h-44 rounded-lg object-contain"
                           />
@@ -521,7 +521,7 @@ Thank you for choosing Shekar Medicals!
                       </p>
                       <div className="inline-block p-3 bg-white rounded-xl border-2 border-primary-100 shadow-sm">
                         <img
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Shekar%20Medicals&am=${invoice.total}&cu=INR&tn=Invoice%20${invoice.id}`}
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Sai%20Chandrika%20Pharmacy&am=${invoice.total}&cu=INR&tn=Invoice%20${invoice.id}`}
                           alt="UPI QR Code"
                           className="w-44 h-44 rounded-lg"
                         />

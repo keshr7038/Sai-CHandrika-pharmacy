@@ -194,7 +194,7 @@ export default function AIChat() {
                 }}
               >
                 <Sparkles className="w-3 h-3" />
-                Powered by Shekar AI
+                Powered by Sai Chandrika AI
               </span>
             </div>
           </div>
@@ -269,7 +269,7 @@ export default function AIChat() {
           </div>
           <div className="flex-1">
             <h3 className="text-sm font-bold text-slate-800 dark:text-white">
-              Shekar AI Medical Assistant
+              Sai Chandrika AI Medical Assistant
             </h3>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse-soft" />
@@ -395,7 +395,7 @@ export default function AIChat() {
             </button>
           </div>
           <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-2 text-center">
-            Shekar AI can make mistakes. Verify medical information with qualified professionals.
+            Sai Chandrika AI can make mistakes. Verify medical information with qualified professionals.
           </p>
         </div>
       </div>

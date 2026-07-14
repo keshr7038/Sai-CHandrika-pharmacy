@@ -112,7 +112,7 @@ export default function CustomerLogin() {
     }
   };
 
-  // Handle Sign Up
+  // Handle Sign Up with OTP
   const handleSignUp = async (e) => {
     e.preventDefault();
     setError('');
@@ -142,55 +142,20 @@ export default function CustomerLogin() {
 
     setLoading(true);
     try {
-      // 1. Create User in Supabase Auth
-      const { data, error: authErr } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
-        password
+      const normEmail = email.trim().toLowerCase();
+      
+      // Send OTP to email for verification (user will be created on verification)
+      const { error: otpErr } = await supabase.auth.signInWithOtp({
+        email: normEmail,
+        options: { shouldCreateUser: true }
       });
 
-      if (authErr) throw authErr;
+      if (otpErr) throw otpErr;
 
-      if (!data?.user) {
-        throw new Error("Sign up completed but no user details were returned.");
-      }
-
-      // 2. Handle email confirmation workflow
-      if (data.session) {
-        // If email verification is off, create DB profile and log in directly
-        const { error: dbErr } = await supabase
-          .from('customers')
-          .insert({
-            id: data.user.id,
-            name: name.trim(),
-            email: email.trim().toLowerCase(),
-            phone: cleanPhone,
-            created_at: new Date().toISOString()
-          });
-        if (dbErr) throw dbErr;
-
-        const lastLogin = new Date().toISOString();
-        await supabase.from('customers').update({ last_login: lastLogin }).eq('id', data.user.id);
-
-        const userData = {
-          id: data.user.id,
-          name: name.trim(),
-          email: email.trim().toLowerCase(),
-          phone: cleanPhone,
-          role: 'customer',
-          createdAt: new Date().toISOString(),
-          lastLogin: lastLogin
-        };
-
-        setUser(userData);
-        localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
-        addNotification("Account created & logged in successfully!", "success");
-        navigate('/customer-dashboard');
-      } else {
-        // If email confirmation is required, transition to OTP verification mode!
-        setMode('otp_verification');
-        setOtp('');
-        setInfoMsg("Account registered! We sent a 6-digit verification code to your email. Please enter it below to confirm your registration.");
-      }
+      // Transition to OTP verification
+      setMode('otp_verification');
+      setOtp('');
+      setInfoMsg("We sent a 6-digit OTP code to your email. Please enter it below to verify your account and complete registration.");
     } catch (err) {
       setError(err.message || 'Signup failed. Please try again.');
     } finally {
@@ -218,7 +183,7 @@ export default function CustomerLogin() {
       const { data, error: authErr } = await supabase.auth.verifyOtp({
         email: normEmail,
         token: otp.trim(),
-        type: 'signup'
+        type: 'email'
       });
 
       if (authErr) throw authErr;
@@ -276,7 +241,7 @@ export default function CustomerLogin() {
       };
 
       setUser(userData);
-      localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
+      localStorage.setItem('saichandrika_user', JSON.stringify(userData));
       addNotification("Email verified and logged in successfully!", "success");
       navigate('/customer-dashboard');
     } catch (err) {
@@ -298,7 +263,7 @@ export default function CustomerLogin() {
                 <Activity className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold gradient-text-dark">Shekar Medicals</h1>
+                <h1 className="text-xl font-bold gradient-text-dark">Sai Chandrika Pharmacy</h1>
                 <p className="text-[11px] text-dark-muted tracking-wide">Customer Portal</p>
               </div>
             </div>
@@ -451,7 +416,7 @@ export default function CustomerLogin() {
               </p>
             ) : mode === 'signin' ? (
               <p className="text-dark-muted">
-                New to Shekar Medicals?{' '}
+                New to Sai Chandrika Pharmacy?{' '}
                 <button type="button" onClick={() => { setMode('signup'); setError(''); setInfoMsg(''); }} className="text-primary-400 font-semibold hover:underline">
                   Create an account
                 </button>
@@ -484,7 +449,7 @@ export default function CustomerLogin() {
                style={{ background: 'linear-gradient(135deg, #2E7D32, #1B5E20)' }}>
             <Activity className="w-10 h-10 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-dark-text mb-3">Shekar Medicals</h2>
+          <h2 className="text-3xl font-bold text-dark-text mb-3">Sai Chandrika Pharmacy</h2>
           <p className="text-dark-muted text-sm leading-relaxed max-w-xs mx-auto mb-10">
             Access purchase details, download medical billing records, and consult pharmacy catalog items.
           </p>

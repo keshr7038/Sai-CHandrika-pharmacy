@@ -121,7 +121,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
               </svg>
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-sm font-bold text-white leading-tight">Shekar Medicals</h1>
+              <h1 className="text-sm font-bold text-white leading-tight">Sai Chandrika Pharmacy</h1>
               <p className="text-[10px] text-white/60 font-medium leading-tight">
                 {isOwner ? 'Owner Portal' : 'Customer Portal'}
               </p>
@@ -309,7 +309,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
                     </g>
                   </svg>
                 </div>
-                <span className="text-sm font-bold text-gray-800">Shekar Medicals</span>
+                <span className="text-sm font-bold text-gray-800">Sai Chandrika Pharmacy</span>
               </div>
               <button onClick={() => setIsMobileMenuOpen(false)} className="p-1 rounded-lg text-gray-400 hover:bg-gray-100">
                 <X className="w-5 h-5" />

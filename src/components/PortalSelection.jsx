@@ -24,6 +24,9 @@ export default function UnifiedLogin() {
   // Steps: 'email_input' | 'password_input' | 'otp_verification' | 'signup'
   const [step, setStep] = useState('email_input');
   
+  // Mode: 'signin' | 'signup'
+  const [mode, setMode] = useState('signin');
+  
   // Role of the logging-in user
   const [role, setRole] = useState('customer'); // 'owner' | 'customer'
 
@@ -56,6 +59,15 @@ export default function UnifiedLogin() {
       return;
     }
 
+    // If mode is signup, go directly to signup form
+    if (mode === 'signup') {
+      setRole('customer');
+      setStep('signup');
+      setInfoMsg('');
+      return;
+    }
+
+    // Otherwise, signin mode - check if owner or customer
     setLoading(true);
     try {
       const isOwner = await checkOwnerEmail(email);
@@ -146,7 +158,7 @@ export default function UnifiedLogin() {
       };
 
       setUser(userData);
-      localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
+      localStorage.setItem('saichandrika_user', JSON.stringify(userData));
       addNotification("Logged in successfully!", "success");
       navigate('/customer-dashboard');
     } catch (err) {
@@ -160,13 +172,13 @@ export default function UnifiedLogin() {
     }
   };
 
-  // 3. Handle Customer Signup Submission
+  // 3. Handle Customer Signup Submission with OTP
   const handleSignUp = async (e) => {
     e.preventDefault();
     setError('');
     setInfoMsg('');
 
-    if (!name.trim() || !phone.trim() || !password) {
+    if (!name.trim() || !email.trim() || !phone.trim() || !password) {
       setError('All fields are required.');
       return;
     }
@@ -184,53 +196,20 @@ export default function UnifiedLogin() {
 
     setLoading(true);
     try {
-      const { data, error: authErr } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
-        password
+      const normEmail = email.trim().toLowerCase();
+      
+      // Send OTP to email for verification (user will be created on verification)
+      const { error: otpErr } = await supabase.auth.signInWithOtp({
+        email: normEmail,
+        options: { shouldCreateUser: true }
       });
 
-      if (authErr) throw authErr;
+      if (otpErr) throw otpErr;
 
-      if (!data?.user) {
-        throw new Error("Sign up completed but no user details were returned.");
-      }
-
-      if (data.session) {
-        // Direct Login (Email Confirmation Disabled)
-        const { error: dbErr } = await supabase
-          .from('customers')
-          .insert({
-            id: data.user.id,
-            name: name.trim(),
-            email: email.trim().toLowerCase(),
-            phone: cleanPhone,
-            created_at: new Date().toISOString()
-          });
-        if (dbErr) throw dbErr;
-
-        const lastLogin = new Date().toISOString();
-        await supabase.from('customers').update({ last_login: lastLogin }).eq('id', data.user.id);
-
-        const userData = {
-          id: data.user.id,
-          name: name.trim(),
-          email: email.trim().toLowerCase(),
-          phone: cleanPhone,
-          role: 'customer',
-          createdAt: new Date().toISOString(),
-          lastLogin: lastLogin
-        };
-
-        setUser(userData);
-        localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
-        addNotification("Account created & logged in successfully!", "success");
-        navigate('/customer-dashboard');
-      } else {
-        // Redirect to OTP verification
-        setStep('otp_verification');
-        setOtp('');
-        setInfoMsg("Account registered! We sent a 6-digit verification code to your email. Enter it below to verify your registration.");
-      }
+      // Transition to OTP verification
+      setStep('otp_verification');
+      setOtp('');
+      setInfoMsg("We sent a 6-digit OTP code to your email. Enter it below to verify your account and complete registration.");
     } catch (err) {
       setError(err.message || 'Signup failed. Please try again.');
     } finally {
@@ -258,7 +237,7 @@ export default function UnifiedLogin() {
       const { data, error: authErr } = await supabase.auth.verifyOtp({
         email: normEmail,
         token: otp.trim(),
-        type: role === 'owner' ? 'email' : 'signup'
+        type: 'email'
       });
 
       if (authErr) throw authErr;
@@ -300,7 +279,7 @@ export default function UnifiedLogin() {
         };
 
         setUser(userData);
-        localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
+        localStorage.setItem('saichandrika_user', JSON.stringify(userData));
         addNotification("Logged in successfully as Owner!", "success");
         navigate('/owner-dashboard');
       } else {
@@ -353,7 +332,7 @@ export default function UnifiedLogin() {
         };
 
         setUser(userData);
-        localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
+        localStorage.setItem('saichandrika_user', JSON.stringify(userData));
         addNotification("Email verified and logged in successfully!", "success");
         navigate('/customer-dashboard');
       }
@@ -366,10 +345,13 @@ export default function UnifiedLogin() {
 
   const handleBackToEmail = () => {
     setStep('email_input');
+    setMode('signin');
     setError('');
     setInfoMsg('');
     setPassword('');
     setOtp('');
+    setName('');
+    setPhone('');
   };
 
   return (
@@ -384,7 +366,7 @@ export default function UnifiedLogin() {
               <Activity className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold gradient-text-dark">Shekar Medicals</h1>
+              <h1 className="text-xl font-bold gradient-text-dark">Sai Chandrika Pharmacy</h1>
               <p className="text-[11px] text-dark-muted tracking-wide">Pharmacy Portal</p>
             </div>
           </div>
@@ -400,14 +382,42 @@ export default function UnifiedLogin() {
                 <ArrowLeft className="w-3.5 h-3.5" /> Back
               </button>
             )}
-            <h2 className={`text-2xl font-bold text-dark-text ${step !== 'email_input' ? 'pt-6' : ''}`}>
-              {step === 'email_input' && 'Sign In'}
-              {step === 'password_input' && 'Enter Password'}
-              {step === 'otp_verification' && 'Verify Code'}
-              {step === 'signup' && 'Create Customer Account'}
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className={`text-2xl font-bold text-dark-text ${step !== 'email_input' ? 'pt-6' : ''}`}>
+                {step === 'email_input' && (mode === 'signin' ? 'Sign In' : 'Create Account')}
+                {step === 'password_input' && 'Enter Password'}
+                {step === 'otp_verification' && 'Verify Code'}
+                {step === 'signup' && 'Create Customer Account'}
+              </h2>
+              {step === 'email_input' && (
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setMode('signin'); setError(''); setInfoMsg(''); setEmail(''); }}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      mode === 'signin' 
+                        ? 'bg-primary-600/20 text-primary-400 border border-primary-500/30' 
+                        : 'text-dark-muted hover:text-dark-text border border-transparent hover:border-dark-border'
+                    }`}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setMode('signup'); setError(''); setInfoMsg(''); setEmail(''); }}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      mode === 'signup' 
+                        ? 'bg-primary-600/20 text-primary-400 border border-primary-500/30' 
+                        : 'text-dark-muted hover:text-dark-text border border-transparent hover:border-dark-border'
+                    }`}
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              )}
+            </div>
             <p className="text-sm text-dark-muted mt-1.5">
-              {step === 'email_input' && 'Enter your email address to log in to the system.'}
+              {step === 'email_input' && (mode === 'signin' ? 'Enter your email address to log in to the system.' : 'Enter your email address to create a new account.')}
               {step === 'password_input' && `Welcome back! Please enter the password for ${email}.`}
               {step === 'otp_verification' && `Enter the 8-digit OTP code sent to ${email}.`}
               {step === 'signup' && `Please fill in details to register account for ${email}.`}
@@ -617,7 +627,7 @@ export default function UnifiedLogin() {
                style={{ background: 'linear-gradient(135deg, #2E7D32, #1B5E20)' }}>
             <Activity className="w-10 h-10 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-dark-text mb-3">Shekar Medicals</h2>
+          <h2 className="text-3xl font-bold text-dark-text mb-3">Sai Chandrika Pharmacy</h2>
           <p className="text-dark-muted text-sm leading-relaxed max-w-xs mx-auto mb-10">
             Pharmacy management, real-time POS sales operations, restock audits, and patient invoicing.
           </p>

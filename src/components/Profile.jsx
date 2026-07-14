@@ -160,7 +160,7 @@ export default function Profile() {
               </h1>
               <p className="text-sm text-gray-400 mt-0.5 flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5" />
-                {user?.shopName || 'Shekar Medicals'}
+                {user?.shopName || 'Sai Chandrika Pharmacy'}
               </p>
             </div>
 
@@ -440,7 +440,7 @@ export default function Profile() {
                   setTwilioTestStatus('sending');
                   const result = await sendSms(
                     user?.phone || '+91 98765 43210',
-                    '🧪 Test SMS from Shekar Medicals. Your Twilio integration is working correctly!',
+                    '🧪 Test SMS from Sai Chandrika Pharmacy. Your Twilio integration is working correctly!',
                     'info'
                   );
                   setTwilioTestStatus(result.method === 'twilio' ? 'success' : 'simulated');
