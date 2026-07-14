@@ -78,7 +78,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50/10 backdrop-blur-[2px]">
       {/* ============ TOP HEADER BAR (Dark Green) ============ */}
       <header className="apollo-header h-14 px-4 sm:px-6 flex items-center justify-between shrink-0 z-30 relative">
         {/* Left: Logo + Store Name */}
