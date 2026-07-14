@@ -7,7 +7,7 @@ import {
   Check,
   QrCode,
   CreditCard,
-  DollarSign,
+  IndianRupee,
   AlertCircle,
   Smartphone,
   Wallet,
@@ -150,7 +150,7 @@ NET TOTAL: ₹${invoice.total.toFixed(2)}
 Payment: ${invoice.paymentMethod}
 Status: ${invoice.paymentStatus}
 =====================================
-Thank you for choosing Induja Medical Store!
+Thank you for choosing Shekar Medicals!
     `.trim();
     const file = new Blob([content], { type: 'text/plain' });
     element.href = URL.createObjectURL(file);
@@ -303,7 +303,7 @@ Thank you for choosing Induja Medical Store!
           {/* Footer */}
           <div className="text-center mb-4">
             <p className="text-xs text-gray-400 italic">
-              Thank you for choosing Induja Medical Store!
+              Thank you for choosing Shekar Medicals!
             </p>
             <p className="text-[10px] text-gray-300 mt-1">
               This is a computer-generated invoice.
@@ -428,7 +428,7 @@ Thank you for choosing Induja Medical Store!
                         {/* Dynamic QR Code */}
                         <div className="inline-block p-3 bg-white rounded-xl border-2 border-primary-100 shadow-sm mx-auto">
                           <img
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Induja%20Medical%20Store&am=${invoice.total}&cu=INR&tn=Invoice%20${invoice.id}`}
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Shekar%20Medicals&am=${invoice.total}&cu=INR&tn=Invoice%20${invoice.id}`}
                             alt="UPI QR Code"
                             className="w-44 h-44 rounded-lg object-contain"
                           />
@@ -521,7 +521,7 @@ Thank you for choosing Induja Medical Store!
                       </p>
                       <div className="inline-block p-3 bg-white rounded-xl border-2 border-primary-100 shadow-sm">
                         <img
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Induja%20Medical%20Store&am=${invoice.total}&cu=INR&tn=Invoice%20${invoice.id}`}
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Shekar%20Medicals&am=${invoice.total}&cu=INR&tn=Invoice%20${invoice.id}`}
                           alt="UPI QR Code"
                           className="w-44 h-44 rounded-lg"
                         />
@@ -581,7 +581,7 @@ Thank you for choosing Induja Medical Store!
                   {invoice.paymentMethod === 'Cash' && (
                     <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
                       <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
-                        <DollarSign className="w-3.5 h-3.5" />
+                        <IndianRupee className="w-3.5 h-3.5" />
                         Cash Payment
                       </div>
                       <div>

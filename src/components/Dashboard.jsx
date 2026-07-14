@@ -3,7 +3,7 @@ import { AppContext } from '../context/AppContext';
 import {
   Pill, TrendingUp, AlertTriangle, Truck, ShoppingBag,
   Sparkles, ArrowRight, ArrowUpRight, ArrowDownRight,
-  DollarSign, Package, Clock, CheckCircle, XCircle, BarChart3
+  IndianRupee, Package, Clock, CheckCircle, XCircle, BarChart3
 } from 'lucide-react';
 
 const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
@@ -55,7 +55,7 @@ export default function Dashboard({ setCurrentTab }) {
     {
       label: "Today's Revenue",
       value: formatCurrency(stats.todayRevenue),
-      icon: DollarSign,
+      icon: IndianRupee,
       iconBg: 'bg-green-50',
       iconColor: 'text-green-600',
       tab: 'transactions',

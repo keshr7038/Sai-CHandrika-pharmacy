@@ -22,7 +22,7 @@ function OwnerProtectedRoute({ children }) {
   const { user } = useContext(AppContext);
   
   if (!user) {
-    return <Navigate to="/owner-login" replace />;
+    return <Navigate to="/" replace />;
   }
   
   if (user.role !== 'owner') {
@@ -36,7 +36,7 @@ function CustomerProtectedRoute({ children }) {
   const { user } = useContext(AppContext);
   
   if (!user) {
-    return <Navigate to="/customer-login" replace />;
+    return <Navigate to="/" replace />;
   }
   
   if (user.role !== 'customer') {
@@ -107,7 +107,7 @@ function AppContent() {
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
         </div>
-        <p className="text-sm font-semibold text-gray-600">Loading Induja Medical Store...</p>
+        <p className="text-sm font-semibold text-gray-600">Loading Shekar Medicals...</p>
         <p className="text-xs text-gray-400 mt-1">Checking active user session</p>
       </div>
     );
@@ -142,8 +142,8 @@ function AppContent() {
       <Route path="/" element={<PortalSelection />} />
       
       {/* Portal Login Pages */}
-      <Route path="/owner-login" element={<OwnerLogin />} />
-      <Route path="/customer-login" element={<CustomerLogin />} />
+      <Route path="/owner-login" element={<Navigate to="/" replace />} />
+      <Route path="/customer-login" element={<Navigate to="/" replace />} />
 
       {/* Protected Owner Dashboard */}
       <Route 

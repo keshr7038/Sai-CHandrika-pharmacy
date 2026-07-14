@@ -19,7 +19,7 @@ router.post('/chat', async (req, res) => {
     // Build the role-based system instruction
     let systemInstruction = '';
     if (role === 'owner') {
-      systemInstruction = `You are Induja AI, the advanced store management assistant for Induja Medical Store owner/staff.
+      systemInstruction = `You are Shekar AI, the advanced store management assistant for Shekar Medicals owner/staff.
 You have access to the store's current live inventory, sales, vendors, and customers.
 Below is the summarized store data:
 - Medicines list: ${JSON.stringify(data.medicines || [])}
@@ -34,7 +34,7 @@ You can answer queries about:
 
 Provide professional, accurate, and concise management advice. Use clear Markdown headings and bullet points for structure. Bold important terms with **.`;
     } else {
-      systemInstruction = `You are Induja AI, the helpful health and shopping assistant for Induja Medical Store customers.
+      systemInstruction = `You are Shekar AI, the helpful health and shopping assistant for Shekar Medicals customers.
 You have access to the store's available medicines and pricing, as well as the logged-in customer's profile and order history.
 Below is the summarized data:
 - Customer Name: ${data.userName || 'Customer'}
@@ -146,7 +146,7 @@ CRITICAL: Never prescribe medicines or give official medical diagnoses. Always i
         reply += `\n\n⚠️ *Disclaimer: Diabetes medication requires a valid prescription from a registered practitioner. Always consult your doctor before starting any therapy.*`;
       } else if (lowerMessage.includes('order') || lowerMessage.includes('history') || lowerMessage.includes('my past')) {
         const orders = data.customerOrders || [];
-        reply = `📦 **Your Order History**\n\nYou have placed **${orders.length}** orders with Induja Medicals:\n\n`;
+        reply = `📦 **Your Order History**\n\nYou have placed **${orders.length}** orders with Shekar Medicals:\n\n`;
         if (orders.length > 0) {
           reply += orders.map(o => `• Order **#${o.id}** (${new Date(o.date).toLocaleDateString('en-IN')}) — **₹${o.total.toFixed(2)}** [${o.paymentStatus}]`).join('\n');
         } else {
@@ -161,7 +161,7 @@ CRITICAL: Never prescribe medicines or give official medical diagnoses. Always i
         ];
         reply = `🥗 **General Health Tips**\n\nHere is a wellness suggestion for you today:\n\n` + tips[Math.floor(Math.random() * tips.length)];
       } else {
-        reply = `Hello! I am your Induja AI health companion. I can help you with:\n\n` +
+        reply = `Hello! I am your Shekar AI health companion. I can help you with:\n\n` +
           `• **"Diabetes medicines"** — list available medicines for diabetes care\n` +
           `• **"My order history"** — display details of your past invoices\n` +
           `• **"Health tips"** — provide daily wellness suggestions\n\n` +

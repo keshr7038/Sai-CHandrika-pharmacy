@@ -23,6 +23,7 @@ export default function CustomerLogin() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
 
   // Status
   const [loading, setLoading] = useState(false);
@@ -153,29 +154,9 @@ export default function CustomerLogin() {
         throw new Error("Sign up completed but no user details were returned.");
       }
 
-      // 2. Check if a customer profile with this email already exists in the database
-      const { data: existingProfile, error: getErr } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('email', email.trim().toLowerCase())
-        .maybeSingle();
-
-      if (getErr) throw getErr;
-
-      if (existingProfile) {
-        // Link the existing profile to the new Supabase Auth User ID (UUID)
-        const { error: updateErr } = await supabase
-          .from('customers')
-          .update({
-            id: data.user.id, // Update Primary Key to match Auth User ID
-            name: name.trim(),
-            phone: cleanPhone
-          })
-          .eq('email', email.trim().toLowerCase());
-
-        if (updateErr) throw updateErr;
-      } else {
-        // Insert new profile into customers table
+      // 2. Handle email confirmation workflow
+      if (data.session) {
+        // If email verification is off, create DB profile and log in directly
         const { error: dbErr } = await supabase
           .from('customers')
           .insert({
@@ -185,16 +166,11 @@ export default function CustomerLogin() {
             phone: cleanPhone,
             created_at: new Date().toISOString()
           });
-
         if (dbErr) throw dbErr;
-      }
 
-      const lastLogin = new Date().toISOString();
-      await supabase.from('customers').update({ last_login: lastLogin }).eq('id', data.user.id);
+        const lastLogin = new Date().toISOString();
+        await supabase.from('customers').update({ last_login: lastLogin }).eq('id', data.user.id);
 
-      // 3. Handle email confirmation workflow
-      if (data.session) {
-        // If email verification is off, log in directly
         const userData = {
           id: data.user.id,
           name: name.trim(),
@@ -206,18 +182,105 @@ export default function CustomerLogin() {
         };
 
         setUser(userData);
-        localStorage.setItem('apollo_user', JSON.stringify(userData));
+        localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
         addNotification("Account created & logged in successfully!", "success");
         navigate('/customer-dashboard');
       } else {
-        // If email confirmation is required, notify user to verify
-        addNotification("Account registered! Check email to verify.", "info");
-        setInfoMsg("Registration successful! Please check your email inbox to confirm your account before signing in.");
-        setMode('signin');
-        setPassword('');
+        // If email confirmation is required, transition to OTP verification mode!
+        setMode('otp_verification');
+        setOtp('');
+        setInfoMsg("Account registered! We sent a 6-digit verification code to your email. Please enter it below to confirm your registration.");
       }
     } catch (err) {
       setError(err.message || 'Signup failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle OTP verification for Signup
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    setInfoMsg('');
+
+    if (!otp || otp.length < 6) {
+      setError('Please enter the 6-digit verification code.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const cleanPhone = phone.trim().replace(/\D/g, '');
+      const normEmail = email.trim().toLowerCase();
+
+      // 1. Verify OTP with Supabase Auth
+      const { data, error: authErr } = await supabase.auth.verifyOtp({
+        email: normEmail,
+        token: otp.trim(),
+        type: 'signup'
+      });
+
+      if (authErr) throw authErr;
+
+      if (!data?.user) {
+        throw new Error("Verification completed but no user details were returned.");
+      }
+
+      // 2. Insert new profile into customers table
+      const { data: existingProfile } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('email', normEmail)
+        .maybeSingle();
+
+      let customerProfile = existingProfile;
+      if (!customerProfile) {
+        const { data: newCust, error: dbErr } = await supabase
+          .from('customers')
+          .insert({
+            id: data.user.id,
+            name: name.trim() || normEmail.split('@')[0],
+            email: normEmail,
+            phone: cleanPhone || '',
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+        if (dbErr) throw dbErr;
+        customerProfile = newCust;
+      } else {
+        await supabase
+          .from('customers')
+          .update({
+            id: data.user.id,
+            name: name.trim() || customerProfile.name,
+            phone: cleanPhone || customerProfile.phone
+          })
+          .eq('email', normEmail);
+        customerProfile.name = name.trim() || customerProfile.name;
+        customerProfile.phone = cleanPhone || customerProfile.phone;
+      }
+
+      const lastLogin = new Date().toISOString();
+      await supabase.from('customers').update({ last_login: lastLogin }).eq('id', customerProfile.id);
+
+      const userData = {
+        id: customerProfile.id,
+        name: customerProfile.name,
+        email: customerProfile.email,
+        phone: customerProfile.phone || '',
+        role: 'customer',
+        createdAt: customerProfile.created_at,
+        lastLogin: lastLogin
+      };
+
+      setUser(userData);
+      localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
+      addNotification("Email verified and logged in successfully!", "success");
+      navigate('/customer-dashboard');
+    } catch (err) {
+      setError(err.message || 'OTP verification failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -235,17 +298,19 @@ export default function CustomerLogin() {
                 <Activity className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold gradient-text-dark">Induja Medical Store</h1>
+                <h1 className="text-xl font-bold gradient-text-dark">Shekar Medicals</h1>
                 <p className="text-[11px] text-dark-muted tracking-wide">Customer Portal</p>
               </div>
             </div>
             <h2 className="text-2xl font-bold text-dark-text mb-2">
-              {mode === 'signin' ? 'Customer Sign In' : 'Create Customer Account'}
+              {mode === 'signin' ? 'Customer Sign In' : (mode === 'signup' ? 'Create Customer Account' : 'Verify Registration')}
             </h2>
             <p className="text-sm text-dark-muted">
               {mode === 'signin' 
                 ? 'Sign in with your email and password to access the store.' 
-                : 'Sign up to check invoices, track orders, and browse medicine catalog.'}
+                : (mode === 'signup' 
+                  ? 'Sign up to check invoices, track orders, and browse medicine catalog.'
+                  : `Enter the code sent to ${email} to complete your registration.`)}
             </p>
           </div>
 
@@ -262,7 +327,7 @@ export default function CustomerLogin() {
             </div>
           )}
 
-          <form onSubmit={mode === 'signin' ? handleSignIn : handleSignUp} className="space-y-4 mt-6">
+          <form onSubmit={mode === 'signin' ? handleSignIn : (mode === 'signup' ? handleSignUp : handleVerifyOtp)} className="space-y-4 mt-6">
             {mode === 'signup' && (
               <div>
                 <label className="input-label-dark">Full Name</label>
@@ -282,22 +347,24 @@ export default function CustomerLogin() {
               </div>
             )}
 
-            <div>
-              <label className="input-label-dark">Email Address</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-dark-muted">
-                  <Mail className="w-4 h-4" />
+            {mode !== 'otp_verification' && (
+              <div>
+                <label className="input-label-dark">Email Address</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-dark-muted">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="email"
+                    placeholder="name@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="input-dark pl-10"
+                    required
+                  />
                 </div>
-                <input
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input-dark pl-10"
-                  required
-                />
               </div>
-            </div>
+            )}
 
             {mode === 'signup' && (
               <div>
@@ -319,22 +386,46 @@ export default function CustomerLogin() {
               </div>
             )}
 
-            <div>
-              <label className="input-label-dark">Password</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-dark-muted">
-                  <Lock className="w-4 h-4" />
+            {mode !== 'otp_verification' && (
+              <div>
+                <label className="input-label-dark">Password</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-dark-muted">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="password"
+                    placeholder="Minimum 6 characters"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="input-dark pl-10"
+                    required
+                  />
                 </div>
-                <input
-                  type="password"
-                  placeholder="Minimum 6 characters"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="input-dark pl-10"
-                  required
-                />
               </div>
-            </div>
+            )}
+
+            {mode === 'otp_verification' && (
+              <div>
+                <label className="input-label-dark">Verification Code (OTP)</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-dark-muted">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    pattern="[0-9]*"
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder="Enter 6-digit code"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    className="input-dark pl-10"
+                    required
+                  />
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"
@@ -345,23 +436,30 @@ export default function CustomerLogin() {
               {loading ? (
                 <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                <>{mode === 'signin' ? 'Sign In' : 'Create Account'} <ArrowRight className="w-4 h-4" /></>
+                <>{mode === 'signin' ? 'Sign In' : (mode === 'signup' ? 'Create Account' : 'Verify & Log In')} <ArrowRight className="w-4 h-4" /></>
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center text-xs">
-            {mode === 'signin' ? (
+            {mode === 'otp_verification' ? (
               <p className="text-dark-muted">
-                New to Induja Medical Store?{' '}
-                <button onClick={() => { setMode('signup'); setError(''); setInfoMsg(''); }} className="text-primary-400 font-semibold hover:underline">
+                Didn't get the code?{' '}
+                <button type="button" onClick={() => { setMode('signup'); setError(''); setInfoMsg(''); }} className="text-primary-400 font-semibold hover:underline">
+                  Go Back
+                </button>
+              </p>
+            ) : mode === 'signin' ? (
+              <p className="text-dark-muted">
+                New to Shekar Medicals?{' '}
+                <button type="button" onClick={() => { setMode('signup'); setError(''); setInfoMsg(''); }} className="text-primary-400 font-semibold hover:underline">
                   Create an account
                 </button>
               </p>
             ) : (
               <p className="text-dark-muted">
                 Already have an account?{' '}
-                <button onClick={() => { setMode('signin'); setError(''); setInfoMsg(''); }} className="text-primary-400 font-semibold hover:underline">
+                <button type="button" onClick={() => { setMode('signin'); setError(''); setInfoMsg(''); }} className="text-primary-400 font-semibold hover:underline">
                   Sign In
                 </button>
               </p>
@@ -386,7 +484,7 @@ export default function CustomerLogin() {
                style={{ background: 'linear-gradient(135deg, #2E7D32, #1B5E20)' }}>
             <Activity className="w-10 h-10 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-dark-text mb-3">Induja Medical Store</h2>
+          <h2 className="text-3xl font-bold text-dark-text mb-3">Shekar Medicals</h2>
           <p className="text-dark-muted text-sm leading-relaxed max-w-xs mx-auto mb-10">
             Access purchase details, download medical billing records, and consult pharmacy catalog items.
           </p>

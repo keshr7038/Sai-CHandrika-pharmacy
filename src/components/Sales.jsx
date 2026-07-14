@@ -63,6 +63,7 @@ export default function Sales() {
     clearCart,
     generateBill,
     markPaymentSuccess,
+    cancelPendingSale,
   } = useContext(AppContext);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -214,8 +215,31 @@ export default function Sales() {
     } catch (err) {
       console.error('Verification error:', err);
       setPaymentStatus('failed');
-      setPaymentError(err.message || 'Verification failed.');
     }
+  };
+
+  const handleCancelOrFailedPayment = async () => {
+    if (paymentSaleId) {
+      try {
+        await cancelPendingSale(paymentSaleId);
+      } catch (err) {
+        console.error('Failed to cancel pending sale:', err);
+      }
+    }
+    setPaymentStatus('failed');
+    setPaymentError('Payment cancelled.');
+  };
+
+  const handleCloseFailedPayment = async () => {
+    if (paymentSaleId) {
+      try {
+        await cancelPendingSale(paymentSaleId);
+      } catch (err) {
+        console.error('Failed to cancel pending sale:', err);
+      }
+    }
+    setPaymentStatus('none');
+    setPaymentSaleId('');
   };
 
   return (
@@ -626,7 +650,7 @@ export default function Sales() {
                 {/* Dynamic QR Code */}
                 <div className="inline-block p-3 bg-white rounded-xl border-2 border-primary-100 shadow-sm mx-auto">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Induja%20Medical%20Store&am=${mockTxn?.total}&cu=INR&tn=Invoice%20${mockTxn?.id}`}
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Shekar%20Medicals&am=${mockTxn?.total}&cu=INR&tn=Invoice%20${mockTxn?.id}`}
                     alt="UPI QR Code"
                     className="w-44 h-44 rounded-lg object-contain mx-auto"
                   />
@@ -655,10 +679,7 @@ export default function Sales() {
                     Verify Payment
                   </button>
                   <button
-                    onClick={() => {
-                      setPaymentStatus('failed');
-                      setPaymentError('Payment cancelled.');
-                    }}
+                    onClick={handleCancelOrFailedPayment}
                     className="btn-outline btn-sm px-4"
                   >
                     Cancel
@@ -718,7 +739,7 @@ export default function Sales() {
                 <p className="text-xs text-red-500 bg-red-50/50 p-2.5 rounded-lg border border-red-100 mt-2">{paymentError || 'Transaction was not completed.'}</p>
                 <div className="mt-6 flex justify-center">
                   <button
-                    onClick={() => setPaymentStatus('none')}
+                    onClick={handleCloseFailedPayment}
                     className="btn-primary btn-sm px-6 bg-red-600 hover:bg-red-700"
                   >
                     Try Again

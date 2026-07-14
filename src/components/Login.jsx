@@ -267,7 +267,7 @@ export default function Login() {
             <Activity className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold gradient-text-dark">Induja Medical Store</h1>
+            <h1 className="text-xl font-bold gradient-text-dark">Shekar Medicals</h1>
             <p className="text-[11px] text-dark-muted tracking-wide">Pharmacy Management System</p>
           </div>
         </div>
@@ -333,7 +333,7 @@ export default function Login() {
             <Activity className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold gradient-text-dark">Induja Medical Store</h1>
+            <h1 className="text-xl font-bold gradient-text-dark">Shekar Medicals</h1>
             <p className="text-[11px] text-dark-muted tracking-wide">Customer Portal</p>
           </div>
         </div>
@@ -566,7 +566,7 @@ export default function Login() {
               </g>
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-dark-text mb-3">Induja Medical Store</h2>
+          <h2 className="text-3xl font-bold text-dark-text mb-3">Shekar Medicals</h2>
           <p className="text-dark-muted text-sm leading-relaxed max-w-xs mx-auto mb-10">
             Secure multi-channel authentication system ensuring strict access control for Owners and Customers.
           </p>

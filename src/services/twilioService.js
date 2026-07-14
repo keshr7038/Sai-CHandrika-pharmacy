@@ -1,5 +1,5 @@
 /**
- * Twilio SMS Service for Induja Medical Store
+ * Twilio SMS Service for Shekar Medicals
  * 
  * This module handles real SMS sending via Twilio REST API.
  * For production, route these calls through a Supabase Edge Function
@@ -159,18 +159,18 @@ export async function sendSmsWithFallback(to, body) {
 
 // SMS Templates
 export const SMS_TEMPLATES = {
-  lowStock: (medicineName, currentStock, minStock, shopName = 'Induja Medical Store') =>
-    `⚠️ LOW STOCK ALERT — ${shopName}\n\n${medicineName} has only ${currentStock} units left (minimum: ${minStock}).\n\nPlease restock immediately to avoid stockouts.\n\n— Induja Medical Store`,
+  lowStock: (medicineName, currentStock, minStock, shopName = 'Shekar Medicals') =>
+    `⚠️ LOW STOCK ALERT — ${shopName}\n\n${medicineName} has only ${currentStock} units left (minimum: ${minStock}).\n\nPlease restock immediately to avoid stockouts.\n\n— Shekar Medicals`,
 
-  paymentSuccess: (invoiceId, amount, shopName = 'Induja Medical Store') =>
-    `✅ Payment Received — ${shopName}\n\nYour payment of ₹${amount} for Invoice ${invoiceId} has been received successfully.\n\nThank you for shopping with us! Stay healthy! 🏥\n\n— Induja Medical Store`,
+  paymentSuccess: (invoiceId, amount, shopName = 'Shekar Medicals') =>
+    `✅ Payment Received — ${shopName}\n\nYour payment of ₹${amount} for Invoice ${invoiceId} has been received successfully.\n\nThank you for shopping with us! Stay healthy! 🏥\n\n— Shekar Medicals`,
 
   paymentReminder: (invoiceId, amount) =>
-    `📩 Payment Reminder\n\nYour invoice ${invoiceId} of ₹${amount} is pending.\n\nPlease complete the payment at Induja Medical Store.\n\n— Induja Medical Store`,
+    `📩 Payment Reminder\n\nYour invoice ${invoiceId} of ₹${amount} is pending.\n\nPlease complete the payment at Shekar Medicals.\n\n— Shekar Medicals`,
 
   vendorDueReminder: (vendorName, dueAmount) =>
-    `📩 Payment Reminder\n\nDear ${vendorName}, you have an outstanding balance of ₹${dueAmount} with Induja Medical Store.\n\nKindly clear the dues at the earliest.\n\nThank you!`,
+    `📩 Payment Reminder\n\nDear ${vendorName}, you have an outstanding balance of ₹${dueAmount} with Shekar Medicals.\n\nKindly clear the dues at the earliest.\n\nThank you!`,
 
   expiryAlert: (medicineName, expiryDate) =>
-    `⚠️ EXPIRY ALERT\n\n${medicineName} is expiring on ${expiryDate}.\n\nPlease review and take necessary action.\n\n— Induja Medical Store`,
+    `⚠️ EXPIRY ALERT\n\n${medicineName} is expiring on ${expiryDate}.\n\nPlease review and take necessary action.\n\n— Shekar Medicals`,
 };

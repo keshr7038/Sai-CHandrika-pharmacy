@@ -17,12 +17,6 @@ const healthCategories = [
   { name: 'Antibiotics', icon: '🧬', color: 'bg-purple-50 text-purple-600', borderColor: 'border-purple-100' },
 ];
 
-const promoCards = [
-  { title: 'Flat 20% OFF', subtitle: 'on medicines', cta: 'Upload Prescription', icon: BadgePercent, color: 'from-primary-600 to-primary-700', textColor: 'text-white' },
-  { title: 'Lab Tests', subtitle: 'at home', cta: 'Book Now', icon: FlaskConical, color: 'from-blue-500 to-blue-600', textColor: 'text-white' },
-  { title: 'Health Plans', subtitle: 'from ₹399', cta: 'Explore', icon: Shield, color: 'from-accent-500 to-accent-600', textColor: 'text-white' },
-  { title: 'Free Delivery', subtitle: 'orders ₹200+', cta: 'Shop Now', icon: Truck, color: 'from-emerald-500 to-emerald-600', textColor: 'text-white' },
-];
 
 export default function CustomerDashboard({ setCurrentTab }) {
   const { medicines, sales, user, addToCart, cart } = useContext(AppContext);
@@ -74,29 +68,6 @@ export default function CustomerDashboard({ setCurrentTab }) {
         </div>
       </div>
 
-      {/* ===== PROMO CARDS ROW ===== */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {promoCards.map((promo, i) => {
-          const Icon = promo.icon;
-          return (
-            <div
-              key={i}
-              onClick={() => setCurrentTab('shop')}
-              className={`relative rounded-2xl bg-gradient-to-br ${promo.color} p-4 cursor-pointer group overflow-hidden transition-all hover:shadow-lg hover:scale-[1.02]`}
-            >
-              <div className="relative z-10">
-                <Icon className={`w-6 h-6 ${promo.textColor} mb-2 opacity-80`} />
-                <h3 className={`text-base font-bold ${promo.textColor}`}>{promo.title}</h3>
-                <p className={`text-xs ${promo.textColor} opacity-70 mb-2`}>{promo.subtitle}</p>
-                <span className={`inline-flex items-center gap-1 text-xs font-semibold ${promo.textColor} opacity-90`}>
-                  {promo.cta} <ChevronRight className="w-3 h-3" />
-                </span>
-              </div>
-              <div className="absolute bottom-0 right-0 w-20 h-20 rounded-full bg-white/10 translate-x-6 translate-y-6" />
-            </div>
-          );
-        })}
-      </div>
 
       {/* ===== BROWSE BY HEALTH CONDITIONS ===== */}
       <section>

@@ -1,5 +1,6 @@
 import React, { useContext, useState, useMemo, useRef } from 'react';
 import { AppContext } from '../context/AppContext';
+import html2pdf from 'html2pdf.js';
 import {
   Search,
   Filter,
@@ -170,14 +171,22 @@ export default function Transactions() {
 
   // Export PDF handler
   const handleExportPdf = () => {
-    addNotification('📄 PDF export initiated — opening print dialog...', 'info');
+    addNotification('📄 Generating PDF document for download...', 'info');
 
-    // Build printable content
-    const printWindow = window.open('', '_blank', 'width=900,height=700');
-    if (!printWindow) {
-      addNotification('⚠️ Pop-up blocked. Please allow pop-ups and try again.', 'warning');
-      return;
-    }
+    const headers = user?.role === 'customer'
+      ? `<th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Invoice</th>
+         <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Date</th>
+         <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Items</th>
+         <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Payment</th>
+         <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Status</th>
+         <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:right;">Amount</th>`
+      : `<th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Invoice</th>
+         <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Date</th>
+         <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Customer</th>
+         <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Items</th>
+         <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Payment</th>
+         <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Status</th>
+         <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:right;">Amount</th>`;
 
     const rows = filteredSales
       .map(
@@ -185,7 +194,7 @@ export default function Transactions() {
           `<tr>
             <td style="border:1px solid #ddd;padding:6px;font-size:12px;">${s.id}</td>
             <td style="border:1px solid #ddd;padding:6px;font-size:12px;">${formatDate(s.date)}</td>
-            <td style="border:1px solid #ddd;padding:6px;font-size:12px;">${s.customerName}</td>
+            ${user?.role === 'customer' ? '' : `<td style="border:1px solid #ddd;padding:6px;font-size:12px;">${s.customerName}</td>`}
             <td style="border:1px solid #ddd;padding:6px;font-size:12px;">${s.items.map((i) => `${i.name} ×${i.quantity}`).join(', ')}</td>
             <td style="border:1px solid #ddd;padding:6px;font-size:12px;">${s.paymentMethod}</td>
             <td style="border:1px solid #ddd;padding:6px;font-size:12px;">${s.paymentStatus}</td>
@@ -194,35 +203,51 @@ export default function Transactions() {
       )
       .join('');
 
-    printWindow.document.write(`
-      <html>
-        <head><title>Transaction Report — Induja Medical Store</title></head>
-        <body style="font-family:Arial,sans-serif;padding:20px;">
-          <h2 style="color:#1B5E20;margin-bottom:4px;">Induja Medical Store</h2>
-          <p style="color:#666;font-size:13px;margin-top:0;">Transaction Report — Generated ${new Date().toLocaleString('en-IN')}</p>
-          <hr style="border:none;border-top:2px solid #1B5E20;margin:12px 0;"/>
-          <p style="font-size:13px;"><strong>Total Transactions:</strong> ${totalTransactions} | <strong>Revenue:</strong> ${formatCurrency(totalRevenue)} | <strong>Avg Order:</strong> ${formatCurrency(avgOrderValue)}</p>
-          <table style="width:100%;border-collapse:collapse;margin-top:12px;">
-            <thead>
-              <tr style="background:#1B5E20;color:white;">
-                <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Invoice</th>
-                <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Date</th>
-                <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Customer</th>
-                <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Items</th>
-                <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Payment</th>
-                <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:left;">Status</th>
-                <th style="border:1px solid #ddd;padding:8px;font-size:11px;text-align:right;">Amount</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-          <p style="font-size:11px;color:#999;margin-top:16px;">This is a computer-generated report.</p>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => printWindow.print(), 500);
+    const element = document.createElement('div');
+    element.innerHTML = `
+      <div style="font-family:Arial,sans-serif;padding:25px;color:#333;">
+        <h2 style="color:#1B5E20;margin-bottom:4px;margin-top:0;">Shekar Medicals</h2>
+        <p style="color:#666;font-size:13px;margin-top:0;">${user?.role === 'customer' ? 'My Order History' : 'Transaction Report'} — Generated ${new Date().toLocaleString('en-IN')}</p>
+        <hr style="border:none;border-top:2px solid #1B5E20;margin:12px 0;"/>
+        
+        <div style="background:#f9f9f9;padding:12px;border-radius:8px;margin-bottom:18px;font-size:13px;display:flex;justify-content:space-between;border:1px solid #eee;">
+          <span><strong>${user?.role === 'customer' ? 'Total Orders' : 'Total Transactions'}:</strong> ${totalTransactions}</span>
+          <span><strong>${user?.role === 'customer' ? 'Total Spent' : 'Total Revenue'}:</strong> ${formatCurrency(totalRevenue)}</span>
+          <span><strong>Avg Order Value:</strong> ${formatCurrency(avgOrderValue)}</span>
+        </div>
+
+        <table style="width:100%;border-collapse:collapse;margin-top:12px;">
+          <thead>
+            <tr style="background:#1B5E20;color:white;">
+              ${headers}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows || '<tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">No records found</td></tr>'}
+          </tbody>
+        </table>
+        <p style="font-size:10px;color:#999;margin-top:25px;text-align:center;border-top:1px dashed #eee;padding-top:10px;">
+          This is a computer-generated document. © ${new Date().getFullYear()} Shekar Medicals.
+        </p>
+      </div>
+    `;
+
+    const opt = {
+      margin:       10,
+      filename:     user?.role === 'customer' ? 'my_orders_history.pdf' : 'transaction_report.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().from(element).set(opt).save()
+      .then(() => {
+        addNotification('✅ PDF downloaded successfully!', 'success');
+      })
+      .catch((err) => {
+        console.error("PDF generation error:", err);
+        addNotification('❌ PDF generation failed.', 'warning');
+      });
   };
 
   return (
@@ -268,21 +293,23 @@ export default function Transactions() {
           </div>
 
           {/* Customer Name */}
-          <div>
-            <label className="input-label">Customer Name</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                <Search className="w-4 h-4" />
+          {user?.role !== 'customer' && (
+            <div>
+              <label className="input-label">Customer Name</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                  <Search className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search customer..."
+                  value={filters.customerName}
+                  onChange={(e) => setFilters({ ...filters, customerName: e.target.value })}
+                  className="input !pl-9"
+                />
               </div>
-              <input
-                type="text"
-                placeholder="Search customer..."
-                value={filters.customerName}
-                onChange={(e) => setFilters({ ...filters, customerName: e.target.value })}
-                className="input !pl-9"
-              />
             </div>
-          </div>
+          )}
 
           {/* Medicine Name */}
           <div>
@@ -350,78 +377,76 @@ export default function Transactions() {
       </div>
 
       {/* ========== SUMMARY STATS ROW ========== */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Total Transactions */}
-        <div className="card-kpi">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                Total Transactions
-              </p>
-              <p className="text-2xl font-extrabold text-gray-800">{totalTransactions}</p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-              <Receipt className="w-5 h-5 text-blue-600" />
-            </div>
+      <div className="card p-5 grid grid-cols-1 sm:grid-cols-3 gap-6 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+        {/* Total Transactions / Orders */}
+        <div className="flex items-center justify-between sm:pr-6">
+          <div>
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
+              {user?.role === 'customer' ? 'Total Orders' : 'Total Transactions'}
+            </p>
+            <p className="text-2xl font-extrabold text-gray-800">{totalTransactions}</p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+            <Receipt className="w-5 h-5 text-blue-600" />
           </div>
         </div>
 
-        {/* Total Revenue */}
-        <div className="card-kpi">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                Total Revenue
-              </p>
-              <p className="text-2xl font-extrabold text-primary-600">
-                {formatCurrency(totalRevenue)}
-              </p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-green-600" />
-            </div>
+        {/* Total Revenue / Spent */}
+        <div className="flex items-center justify-between pt-4 sm:pt-0 sm:px-6">
+          <div>
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
+              {user?.role === 'customer' ? 'Total Spent' : 'Total Revenue'}
+            </p>
+            <p className="text-2xl font-extrabold text-primary-600">
+              {formatCurrency(totalRevenue)}
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-green-600" />
           </div>
         </div>
 
         {/* Average Order Value */}
-        <div className="card-kpi">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                Avg Order Value
-              </p>
-              <p className="text-2xl font-extrabold text-accent-600">
-                {formatCurrency(avgOrderValue)}
-              </p>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
-              <FileText className="w-5 h-5 text-amber-600" />
-            </div>
+        <div className="flex items-center justify-between pt-4 sm:pt-0 sm:pl-6">
+          <div>
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">
+              Avg Order Value
+            </p>
+            <p className="text-2xl font-extrabold text-accent-600">
+              {formatCurrency(avgOrderValue)}
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+            <FileText className="w-5 h-5 text-amber-600" />
           </div>
         </div>
-      {/* Tab Selectors */}
-      <div className="flex border-b border-gray-200 mb-6">
-        <button
-          onClick={() => setActiveSubTab('orders')}
-          className={`px-6 py-3 text-sm font-semibold border-b-2 transition-all duration-200 cursor-pointer ${
-            activeSubTab === 'orders'
-              ? 'border-primary-600 text-primary-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Order Invoices ({filteredSales.length})
-        </button>
-        <button
-          onClick={() => setActiveSubTab('payments')}
-          className={`px-6 py-3 text-sm font-semibold border-b-2 transition-all duration-200 cursor-pointer ${
-            activeSubTab === 'payments'
-              ? 'border-primary-600 text-primary-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Online Payments Gateway ({(payments || []).length})
-        </button>
       </div>
+
+      {/* Tab Selectors */}
+      {user?.role !== 'customer' && (
+        <div className="flex border-b border-gray-200 mb-6">
+          <button
+            onClick={() => setActiveSubTab('orders')}
+            className={`px-6 py-3 text-sm font-semibold border-b-2 transition-all duration-200 cursor-pointer ${
+              activeSubTab === 'orders'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Order Invoices ({filteredSales.length})
+          </button>
+          <button
+            onClick={() => setActiveSubTab('payments')}
+            className={`px-6 py-3 text-sm font-semibold border-b-2 transition-all duration-200 cursor-pointer ${
+              activeSubTab === 'payments'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Online Payments Gateway ({(payments || []).length})
+          </button>
+        </div>
+      )}
 
       {activeSubTab === 'orders' ? (
         /* ========== TRANSACTIONS TABLE ========== */
@@ -433,9 +458,9 @@ export default function Transactions() {
                 <Receipt className="w-5 h-5 text-primary-600" />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-gray-800">Transaction History</h2>
+                <h2 className="text-sm font-bold text-gray-800">{user?.role === 'customer' ? 'My Order History' : 'Transaction History'}</h2>
                 <p className="text-[11px] text-gray-400 font-medium">
-                  All sales invoices and payment records
+                  {user?.role === 'customer' ? 'All your purchase invoices and payment records' : 'All sales invoices and payment records'}
                 </p>
               </div>
             </div>
@@ -448,7 +473,7 @@ export default function Transactions() {
                 <tr className="table-header">
                   <th>Invoice ID</th>
                   <th>Date & Time</th>
-                  <th>Customer</th>
+                  {user?.role !== 'customer' && <th>Customer</th>}
                   <th>Items</th>
                   <th>Payment</th>
                   <th>Status</th>
@@ -471,12 +496,14 @@ export default function Transactions() {
                           })}
                         </div>
                       </td>
-                      <td>
-                        <div className="font-semibold text-gray-800">{sale.customerName}</div>
-                        {sale.customerPhone && (
-                          <div className="text-[11px] text-gray-400">{sale.customerPhone}</div>
-                        )}
-                      </td>
+                      {user?.role !== 'customer' && (
+                        <td>
+                          <div className="font-semibold text-gray-800">{sale.customerName}</div>
+                          {sale.customerPhone && (
+                            <div className="text-[11px] text-gray-400">{sale.customerPhone}</div>
+                          )}
+                        </td>
+                      )}
                       <td>
                         <div className="space-y-0.5 max-w-[200px]">
                           {sale.items.slice(0, 2).map((item, idx) => (
@@ -555,10 +582,10 @@ export default function Transactions() {
           {/* Table Footer */}
           <div className="bg-gray-50 border-t border-gray-100 px-6 py-3 flex items-center justify-between text-xs text-gray-500 font-medium">
             <span>
-              {filteredSales.length} of {sales.length} transaction(s) shown
+              {filteredSales.length} of {sales.length} {user?.role === 'customer' ? 'order(s)' : 'transaction(s)'} shown
             </span>
             <span>
-              Revenue:{' '}
+              {user?.role === 'customer' ? 'Total Spent' : 'Revenue'}:{' '}
               <span className="font-bold text-primary-600">{formatCurrency(totalRevenue)}</span>
             </span>
           </div>
@@ -654,7 +681,6 @@ export default function Transactions() {
           </div>
         </div>
       )}
-      </div>
 
       {/* ========== INVOICE DETAIL MODAL ========== */}
       {selectedInvoice && (
@@ -695,7 +721,7 @@ export default function Transactions() {
                         <head><title>Invoice ${selectedInvoice.id}</title></head>
                         <body style="font-family:Arial,sans-serif;padding:30px;max-width:600px;margin:auto;">
                           <div style="text-align:center;margin-bottom:20px;">
-                            <h2 style="color:#1B5E20;margin-bottom:2px;">🏥 Induja Medical Store</h2>
+                            <h2 style="color:#1B5E20;margin-bottom:2px;">🏥 Shekar Medicals</h2>
                             <p style="color:#666;font-size:11px;margin:0;">Your Trusted Health Partner | DL-2026-RX-44821</p>
                             <p style="color:#999;font-size:10px;margin:4px 0 0 0;">123 Health Avenue, Medical District</p>
                           </div>
@@ -724,7 +750,7 @@ export default function Transactions() {
                           <div style="margin-top:16px;padding:10px;background:#f9f9f9;border-radius:8px;font-size:11px;color:#666;">
                             <strong>Payment:</strong> ${selectedInvoice.paymentMethod} — ${selectedInvoice.paymentStatus} | <strong>Cashier:</strong> ${selectedInvoice.cashier}
                           </div>
-                          <p style="text-align:center;font-size:10px;color:#aaa;margin-top:20px;">Thank you for choosing Induja Medical Store! 💚</p>
+                          <p style="text-align:center;font-size:10px;color:#aaa;margin-top:20px;">Thank you for choosing Shekar Medicals! 💚</p>
                         </body>
                       </html>
                     `);
@@ -751,7 +777,7 @@ export default function Transactions() {
               {/* Store & Invoice Info */}
               <div className="flex flex-col sm:flex-row justify-between gap-4">
                 <div>
-                  <h4 className="text-base font-bold text-primary-700">🏥 Induja Medical Store</h4>
+                  <h4 className="text-base font-bold text-primary-700">🏥 Shekar Medicals</h4>
                   <p className="text-[11px] text-gray-400 mt-0.5">
                     Your Trusted Health Partner
                   </p>

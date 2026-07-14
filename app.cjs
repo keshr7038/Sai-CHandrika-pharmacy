@@ -32,7 +32,7 @@ app.use('/api/ai', aiRoutes);
 
 // Root check route
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', service: 'Induja Medical POS Server' });
+  res.json({ status: 'ok', service: 'Shekar Medicals POS Server' });
 });
 
 // Global Exception Handler
@@ -44,7 +44,7 @@ app.use((err, req, res, next) => {
 // Start Server if run directly
 if (require.main === module || !process.env.VERCEL) {
   app.listen(PORT, () => {
-    console.log(`🚀 Induja POS Server is running on port ${PORT}`);
+    console.log(`🚀 Shekar POS Server is running on port ${PORT}`);
   });
 }
 

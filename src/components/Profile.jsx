@@ -11,7 +11,7 @@ import {
   Calendar,
   Edit3,
   TrendingUp,
-  DollarSign,
+  IndianRupee,
   Pill,
   MessageSquare,
   Clock,
@@ -101,7 +101,7 @@ export default function Profile() {
     {
       label: 'Revenue Generated',
       value: formatCurrency(totalRevenueGenerated),
-      icon: DollarSign,
+      icon: IndianRupee,
       iconBg: 'bg-green-100 dark:bg-green-950/40',
       iconColor: 'text-green-600 dark:text-green-400',
       desc: 'Total earnings',
@@ -160,7 +160,7 @@ export default function Profile() {
               </h1>
               <p className="text-sm text-gray-400 mt-0.5 flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5" />
-                {user?.shopName || 'Induja Medical Store'}
+                {user?.shopName || 'Shekar Medicals'}
               </p>
             </div>
 
@@ -440,7 +440,7 @@ export default function Profile() {
                   setTwilioTestStatus('sending');
                   const result = await sendSms(
                     user?.phone || '+91 98765 43210',
-                    '🧪 Test SMS from Induja Medical Store. Your Twilio integration is working correctly!',
+                    '🧪 Test SMS from Shekar Medicals. Your Twilio integration is working correctly!',
                     'info'
                   );
                   setTwilioTestStatus(result.method === 'twilio' ? 'success' : 'simulated');

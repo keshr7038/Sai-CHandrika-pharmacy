@@ -106,7 +106,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const restoreSession = async () => {
       try {
-        const storedUser = localStorage.getItem('induja_user');
+        const storedUser = localStorage.getItem('shekarmedicals_user');
         if (storedUser) {
           setUser(JSON.parse(storedUser));
         }
@@ -330,6 +330,63 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // Handle auth state changes (e.g. Magic Link login redirects)
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const storedUser = localStorage.getItem('shekarmedicals_user');
+        const currentUser = storedUser ? JSON.parse(storedUser) : null;
+        
+        if (!currentUser || currentUser.id !== session.user.id) {
+          const email = session.user.email;
+          const isOwner = await checkOwnerEmail(email);
+          if (isOwner) {
+            await logOwnerLogin(email);
+            const userData = {
+              id: session.user.id,
+              name: 'Store Owner',
+              email: email,
+              phone: '',
+              role: 'owner',
+              createdAt: session.user.created_at
+            };
+            setUser(userData);
+            localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
+            addNotification("Logged in successfully as Owner!", "success");
+          } else {
+            const { data: customerProfile } = await supabase
+              .from('customers')
+              .select('*')
+              .eq('email', email)
+              .maybeSingle();
+            
+            if (customerProfile) {
+              const userData = {
+                id: customerProfile.id,
+                name: customerProfile.name,
+                email: customerProfile.email,
+                phone: customerProfile.phone || '',
+                role: 'customer',
+                createdAt: customerProfile.created_at,
+                lastLogin: customerProfile.last_login
+              };
+              setUser(userData);
+              localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
+              addNotification("Logged in successfully as Customer!", "success");
+            }
+          }
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        localStorage.removeItem('shekarmedicals_user');
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [addNotification]);
+
   const verifyOwnerOtp = async (email, otp) => {
     try {
       const normEmail = email.trim().toLowerCase();
@@ -359,7 +416,7 @@ export const AppProvider = ({ children }) => {
       };
       
       setUser(userData);
-      localStorage.setItem('induja_user', JSON.stringify(userData));
+      localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
       addNotification("Logged in successfully as Owner!", "success");
       return { success: true };
     } catch (err) {
@@ -420,7 +477,7 @@ export const AppProvider = ({ children }) => {
       };
 
       setUser(userData);
-      localStorage.setItem('induja_user', JSON.stringify(userData));
+      localStorage.setItem('shekarmedicals_user', JSON.stringify(userData));
       addNotification("Logged in successfully as Customer!", "success");
       return { success: true };
     } catch (err) {
@@ -430,8 +487,13 @@ export const AppProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn("Failed to sign out from Supabase:", e.message);
+    }
     setUser(null);
-    localStorage.removeItem('induja_user');
+    localStorage.removeItem('shekarmedicals_user');
     setCart([]);
     setMedicines([]);
     setVendors([]);
@@ -700,6 +762,17 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const cancelPendingSale = async (saleId) => {
+    // 1. Optimistic local update
+    setSales(prev => prev.filter(s => s.id !== saleId));
+
+    // 2. Delete from Supabase (sale_items will cascade delete automatically)
+    const { error } = await supabase.from('sales').delete().eq('id', saleId);
+    if (error) {
+      console.error('Failed to delete pending sale:', error);
+    }
+  };
+
   // =============================================
   // PURCHASES — Supabase insert + stock update
   // =============================================
@@ -780,7 +853,7 @@ export const AppProvider = ({ children }) => {
   // =============================================
   const [aiMessages, setAiMessages] = useState([{
     id: 'ai-welcome', role: 'assistant',
-    content: 'Hello! 👋 I\'m your Induja AI Medical Assistant. I can help you with:\n\n• **Medicine information** — dosage, uses, side effects\n• **Stock queries** — check availability and pricing\n• **Health tips** — general wellness advice\n• **Order assistance** — help with prescriptions\n\nHow can I assist you today?',
+    content: 'Hello! 👋 I\'m your Shekar AI Medical Assistant. I can help you with:\n\n• **Medicine information** — dosage, uses, side effects\n• **Stock queries** — check availability and pricing\n• **Health tips** — general wellness advice\n• **Order assistance** — help with prescriptions\n\nHow can I assist you today?',
     timestamp: new Date().toISOString()
   }]);
 
@@ -902,7 +975,7 @@ export const AppProvider = ({ children }) => {
       addMedicine, updateMedicine, deleteMedicine,
       addVendor, updateVendor,
       addToCart, removeFromCart, updateCartQuantity, clearCart,
-      generateBill, markPaymentSuccess,
+      generateBill, markPaymentSuccess, cancelPendingSale,
       addPurchase, sendVendorDueReminder,
       sendSms, addNotification, markNotificationRead, clearNotifications,
       sendAiMessage, updateTwilioConfig, getSheetDisplay, loadAllData,
