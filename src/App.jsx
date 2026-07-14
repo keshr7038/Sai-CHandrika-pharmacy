@@ -13,7 +13,6 @@ import Purchases from './components/Purchases';
 import Vendors from './components/Vendors';
 import Transactions from './components/Transactions';
 import Profile from './components/Profile';
-import EmergencyPage from './components/EmergencyPage';
 import AIChat from './components/AIChat';
 import Customers from './components/Customers';
 import './App.css';
@@ -75,42 +74,15 @@ function OwnerDashboardWrapper() {
 
 function CustomerDashboardWrapper() {
   const [currentTab, setCurrentTab] = useState('dashboard');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('All');
 
   const renderActiveView = () => {
     switch (currentTab) {
-      case 'dashboard': 
-        return (
-          <CustomerDashboard 
-            setCurrentTab={setCurrentTab} 
-            searchQuery={searchQuery} 
-            setSearchQuery={setSearchQuery} 
-            setActiveCategory={setActiveCategory} 
-          />
-        );
-      case 'shop': 
-        return (
-          <Sales 
-            initialSearchQuery={searchQuery} 
-            setInitialSearchQuery={setSearchQuery} 
-            activeCategory={activeCategory} 
-            setActiveCategory={setActiveCategory} 
-          />
-        );
+      case 'dashboard': return <CustomerDashboard setCurrentTab={setCurrentTab} />;
+      case 'shop': return <Sales />;
       case 'orders': return <Transactions />;
-      case 'emergency': return <EmergencyPage />;
       case 'ai-assistant': return <AIChat />;
       case 'profile': return <Profile />;
-      default: 
-        return (
-          <CustomerDashboard 
-            setCurrentTab={setCurrentTab} 
-            searchQuery={searchQuery} 
-            setSearchQuery={setSearchQuery} 
-            setActiveCategory={setActiveCategory} 
-          />
-        );
+      default: return <CustomerDashboard setCurrentTab={setCurrentTab} />;
     }
   };
 

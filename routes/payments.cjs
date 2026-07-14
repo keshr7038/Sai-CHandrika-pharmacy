@@ -114,9 +114,9 @@ router.post('/verify-payment', async (req, res) => {
         }
       }
 
-      // Log payment in Supabase (set user_id to null to avoid foreign key violation for customer profile logins)
+      // Log payment in Supabase
       await supabase.from('payments').insert({
-        user_id: null,
+        user_id: user_id || null,
         order_id: order_id,
         payment_id: payment_id || `pay_mock_${Date.now()}`,
         amount: amountVal,
@@ -252,9 +252,9 @@ router.post('/webhook', async (req, res) => {
         .maybeSingle();
 
       if (!existing) {
-        // Insert payment log (set user_id to null to avoid foreign key violation)
+        // Insert payment log
         const { error: payErr } = await supabase.from('payments').insert({
-          user_id: null,
+          user_id: user_id || null,
           order_id: order_id || '',
           payment_id: payment_id,
           amount: amount,

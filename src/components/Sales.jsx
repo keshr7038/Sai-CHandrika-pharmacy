@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo, useEffect } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import { AppContext, getSheetDisplay } from '../context/AppContext';
 import InvoiceModal from './InvoiceModal';
 import {
@@ -51,12 +51,7 @@ const loadRazorpayScript = () => {
   });
 };
 
-export default function Sales({
-  initialSearchQuery,
-  setInitialSearchQuery,
-  activeCategory: propActiveCategory,
-  setActiveCategory: propSetActiveCategory
-}) {
+export default function Sales() {
   const {
     user,
     medicines,
@@ -67,41 +62,18 @@ export default function Sales({
     updateCartQuantity,
     clearCart,
     generateBill,
-    payments,
     markPaymentSuccess,
     cancelPendingSale,
   } = useContext(AppContext);
 
-  const [searchQuery, setSearchQuery] = useState(initialSearchQuery || '');
-  const [activeCategory, setActiveCategory] = useState(propActiveCategory || 'All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [discountPercent, setDiscountPercent] = useState(0);
   const [taxPercent, setTaxPercent] = useState(8);
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [invoiceData, setInvoiceData] = useState(null);
-
-  // Sync state back to parent if updated locally
-  useEffect(() => {
-    if (setInitialSearchQuery) setInitialSearchQuery(searchQuery);
-  }, [searchQuery, setInitialSearchQuery]);
-
-  useEffect(() => {
-    if (propSetActiveCategory) propSetActiveCategory(activeCategory);
-  }, [activeCategory, propSetActiveCategory]);
-
-  // Sync state from parent props if updated externally (like dashboard clicks)
-  useEffect(() => {
-    if (initialSearchQuery !== undefined && initialSearchQuery !== searchQuery) {
-      setSearchQuery(initialSearchQuery);
-    }
-  }, [initialSearchQuery]);
-
-  useEffect(() => {
-    if (propActiveCategory !== undefined && propActiveCategory !== activeCategory) {
-      setActiveCategory(propActiveCategory);
-    }
-  }, [propActiveCategory]);
 
   // Razorpay Payment States
   const [paymentStatus, setPaymentStatus] = useState('none'); // 'none' | 'initiating' | 'paying' | 'verifying' | 'success' | 'failed'
@@ -401,46 +373,14 @@ export default function Sales({
                     </div>
 
                     {/* Add to Cart Button */}
-                    {inCartQty > 0 ? (
-                      <div className="flex items-center justify-between bg-primary-50 rounded-xl border border-primary-200 overflow-hidden h-9">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (inCartQty === 1) {
-                              removeFromCart(med.id);
-                            } else {
-                              updateCartQuantity(med.id, inCartQty - 1);
-                            }
-                          }}
-                          className="w-10 h-full flex items-center justify-center text-primary-700 hover:bg-primary-100 transition-colors font-bold text-sm cursor-pointer"
-                        >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <span className="flex-1 text-center text-xs font-extrabold text-primary-700 font-mono">
-                          {inCartQty} in Cart
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (inCartQty < med.stock) {
-                              updateCartQuantity(med.id, inCartQty + 1);
-                            }
-                          }}
-                          className="w-10 h-full flex items-center justify-center text-primary-700 hover:bg-primary-100 transition-colors font-bold text-sm cursor-pointer"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => addToCart(med)}
-                        disabled={isOutOfStock}
-                        className="btn-primary btn-sm w-full justify-center"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        Add to Cart
-                      </button>
-                    )}
+                    <button
+                      onClick={() => addToCart(med)}
+                      disabled={isOutOfStock}
+                      className="btn-primary btn-sm w-full justify-center"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add to Cart
+                    </button>
                   </div>
                 );
               })}
@@ -705,12 +645,12 @@ export default function Sales({
                   <QrCode className="w-6 h-6 text-primary-600" />
                 </div>
                 <h3 className="text-base font-bold text-gray-800">Scan QR Code to Pay</h3>
-                <p className="text-xs text-gray-500">Scan using PhonePe / GPay / Paytm to pay <strong className="text-primary-600 font-bold">₹{(mockTxn?.total || 0).toFixed(2)}</strong></p>
+                <p className="text-xs text-gray-500">Scan using PhonePe / GPay / Paytm to pay <strong className="text-primary-600 font-bold">₹{mockTxn?.total.toFixed(2)}</strong></p>
                 
                 {/* Dynamic QR Code */}
                 <div className="inline-block p-3 bg-white rounded-xl border-2 border-primary-100 shadow-sm mx-auto">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`upi://pay?pa=6309337535@ybl&pn=Sai Chandrika Pharmacy&am=${mockTxn?.total || 0}&cu=INR&tn=Invoice ${mockTxn?.id || ''}`)}`}
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Sai%20Chandrika%20Pharmacy&am=${mockTxn?.total}&cu=INR&tn=Invoice%20${mockTxn?.id}`}
                     alt="UPI QR Code"
                     className="w-44 h-44 rounded-lg object-contain mx-auto"
                   />

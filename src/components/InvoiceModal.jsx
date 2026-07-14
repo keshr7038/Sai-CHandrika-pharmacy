@@ -428,9 +428,9 @@ Thank you for choosing Sai Chandrika Pharmacy!
                         {/* Dynamic QR Code */}
                         <div className="inline-block p-3 bg-white rounded-xl border-2 border-primary-100 shadow-sm mx-auto">
                           <img
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`upi://pay?pa=6309337535@ybl&pn=Sai Chandrika Pharmacy&am=${invoice.total}&cu=INR&tn=Invoice ${invoice.id}`)}`}
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Sai%20Chandrika%20Pharmacy&am=${invoice.total}&cu=INR&tn=Invoice%20${invoice.id}`}
                             alt="UPI QR Code"
-                            className="w-44 h-44 rounded-lg object-contain mx-auto"
+                            className="w-44 h-44 rounded-lg object-contain"
                           />
                         </div>
                         <p className="text-[10px] text-gray-400 font-semibold bg-gray-50 p-1.5 rounded-lg border border-gray-100 max-w-[200px] mx-auto truncate">UPI ID: 6309337535@ybl</p>

@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from '../context/AppContext';
 import { 
-  ShoppingCart, Zap, Heart, Scale, X, Check, ChevronDown, ChevronUp, Star, Award, Shield, Stethoscope, Briefcase, Plus, Minus
+  ShoppingCart, Zap, Heart, Scale, X, Check, ChevronDown, ChevronUp, Star, Award, Shield, Stethoscope, Briefcase
 } from 'lucide-react';
 
 const kitsData = [
@@ -230,7 +230,7 @@ const kitsData = [
 ];
 
 export default function FirstAidKitsSection({ setCurrentTab }) {
-  const { addToCart, addNotification, cart, removeFromCart, updateCartQuantity } = useContext(AppContext);
+  const { addToCart, addNotification } = useContext(AppContext);
   const [expandedKit, setExpandedKit] = useState(null);
   const [comparedKits, setComparedKits] = useState([]);
   const [showCompareModal, setShowCompareModal] = useState(false);
@@ -332,8 +332,6 @@ export default function FirstAidKitsSection({ setCurrentTab }) {
           const isExpanded = expandedKit === kit.id;
           const isComparing = comparedKits.some(k => k.id === kit.id);
           const isSaved = wishlist.includes(kit.id);
-          const inCartItem = cart?.find(item => item.medicineId === kit.id);
-          const inCartQty = inCartItem ? inCartItem.quantity : 0;
 
           return (
             <div key={kit.id} className="card p-4 flex flex-col justify-between relative group overflow-hidden border border-gray-100/80 hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
@@ -429,43 +427,13 @@ export default function FirstAidKitsSection({ setCurrentTab }) {
                     <Zap className="w-3.5 h-3.5 fill-white" />
                     Buy Now
                   </button>
-                  {inCartQty > 0 ? (
-                    <div className="flex items-center justify-between bg-primary-50 rounded-xl border border-primary-200 overflow-hidden h-9">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (inCartQty === 1) {
-                            removeFromCart(kit.id);
-                          } else {
-                            updateCartQuantity(kit.id, inCartQty - 1);
-                          }
-                        }}
-                        className="w-8 h-full flex items-center justify-center text-primary-700 hover:bg-primary-100 transition-colors font-bold text-sm cursor-pointer"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <span className="flex-1 text-center text-xs font-extrabold text-primary-700 font-mono">
-                        {inCartQty} in Cart
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          updateCartQuantity(kit.id, inCartQty + 1);
-                        }}
-                        className="w-8 h-full flex items-center justify-center text-primary-700 hover:bg-primary-100 transition-colors font-bold text-sm cursor-pointer"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button 
-                      onClick={() => handleAddToCart(kit)}
-                      className="w-full text-primary-600 bg-primary-50/50 border border-primary-200/60 hover:bg-primary-600 hover:text-white btn-sm py-2 rounded-xl flex items-center justify-center gap-1.5 hover:scale-[1.01] transition-all duration-200"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      Add to Cart
-                    </button>
-                  )}
+                  <button 
+                    onClick={() => handleAddToCart(kit)}
+                    className="w-full text-primary-600 bg-primary-50/50 border border-primary-200/60 hover:bg-primary-600 hover:text-white btn-sm py-2 rounded-xl flex items-center justify-center gap-1.5 hover:scale-[1.01] transition-all duration-200"
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5" />
+                    Add to Cart
+                  </button>
                 </div>
 
                 {/* Utility Actions footer */}

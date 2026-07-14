@@ -1,7 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
-import pharmacyBg from '../assets/pharmacy_bg.jpg';
 import {
   Activity, LayoutDashboard, Pill, ShoppingCart, Package, Truck,
   FileText, Bot, UserCircle, Bell, Sun, Moon, Menu, X, LogOut,
@@ -11,7 +10,7 @@ import {
 
 export default function Layout({ children, currentTab, setCurrentTab }) {
   const navigate = useNavigate();
-  const { user, logout, darkMode, toggleDarkMode, medicines, notifications, markNotificationRead, clearNotifications, cart } = useContext(AppContext);
+  const { user, logout, darkMode, toggleDarkMode, medicines, notifications, markNotificationRead, clearNotifications } = useContext(AppContext);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -48,9 +47,8 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
   // Customer navigation tabs
   const customerTabs = [
     { id: 'dashboard', label: 'Home', icon: Home },
-    { id: 'shop', label: 'Shop Medicines', icon: ShoppingBag, badge: (cart && cart.length > 0) ? `${cart.reduce((s, i) => s + i.quantity, 0)}` : null, badgeColor: 'bg-accent-600' },
+    { id: 'shop', label: 'Shop Medicines', icon: ShoppingBag },
     { id: 'orders', label: 'My Orders', icon: ClipboardList },
-    { id: 'emergency', label: 'Emergency Services', icon: Activity, badge: 'SOS', badgeColor: 'bg-red-500 font-extrabold animate-pulse' },
     { id: 'ai-assistant', label: 'AI Assistant', icon: Bot, badge: 'New', badgeColor: 'bg-accent-600' },
     { id: 'profile', label: 'My Profile', icon: UserCircle },
   ];
@@ -80,10 +78,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
   };
 
   return (
-    <div 
-      className="min-h-screen flex flex-col bg-cover bg-center bg-no-repeat bg-fixed"
-      style={{ backgroundImage: `url(${pharmacyBg})` }}
-    >
+    <div className="min-h-screen flex flex-col bg-gray-50">
       {/* ============ TOP HEADER BAR (Dark Green) ============ */}
       <header className="apollo-header h-14 px-4 sm:px-6 flex items-center justify-between shrink-0 z-30 relative">
         {/* Left: Logo + Store Name */}
@@ -136,22 +131,6 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
-          {/* Cart Icon (only for Customer role) */}
-          {user?.role === 'customer' && (
-            <button
-              onClick={() => handleTabClick('shop')}
-              className="relative p-2 rounded-lg text-white/70 hover:bg-white/10 transition-colors cursor-pointer"
-              title="View Shopping Cart"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              {cart && cart.length > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-accent-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center animate-pulse">
-                  {cart.reduce((s, i) => s + i.quantity, 0)}
-                </span>
-              )}
-            </button>
-          )}
-
           {/* Notification Bell */}
           <div ref={notifRef} className="relative">
             <button
@@ -258,7 +237,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
       </header>
 
       {/* ============ SECONDARY NAV BAR (Horizontal Tabs — Desktop) ============ */}
-      <nav className="hidden lg:block bg-white/80 dark:bg-dark-card/85 border-b border-gray-200 dark:border-dark-border shrink-0 sticky top-0 z-20 backdrop-blur-md">
+      <nav className="hidden lg:block bg-white border-b border-gray-200 shrink-0 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-1 overflow-x-auto">
             {tabs.map((tab) => {
@@ -390,7 +369,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
       )}
 
       {/* ============ MAIN CONTENT AREA ============ */}
-      <main className="flex-1 overflow-y-auto bg-gray-50/70 dark:bg-dark-bg/80 backdrop-blur-[4px]">
+      <main className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           {children}
         </div>
