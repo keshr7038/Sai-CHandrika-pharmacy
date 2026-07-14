@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
+import pharmacyBg from '../assets/pharmacy_bg.jpg';
 import {
   Activity, LayoutDashboard, Pill, ShoppingCart, Package, Truck,
   FileText, Bot, UserCircle, Bell, Sun, Moon, Menu, X, LogOut,
@@ -78,7 +79,10 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div 
+      className="min-h-screen flex flex-col bg-cover bg-center bg-no-repeat bg-fixed"
+      style={{ backgroundImage: `url(${pharmacyBg})` }}
+    >
       {/* ============ TOP HEADER BAR (Dark Green) ============ */}
       <header className="apollo-header h-14 px-4 sm:px-6 flex items-center justify-between shrink-0 z-30 relative">
         {/* Left: Logo + Store Name */}
@@ -253,7 +257,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
       </header>
 
       {/* ============ SECONDARY NAV BAR (Horizontal Tabs — Desktop) ============ */}
-      <nav className="hidden lg:block bg-white border-b border-gray-200 shrink-0 sticky top-0 z-20">
+      <nav className="hidden lg:block bg-white/80 dark:bg-dark-card/85 border-b border-gray-200 dark:border-dark-border shrink-0 sticky top-0 z-20 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-1 overflow-x-auto">
             {tabs.map((tab) => {
@@ -385,7 +389,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
       )}
 
       {/* ============ MAIN CONTENT AREA ============ */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto bg-gray-50/70 dark:bg-dark-bg/80 backdrop-blur-[4px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           {children}
         </div>
