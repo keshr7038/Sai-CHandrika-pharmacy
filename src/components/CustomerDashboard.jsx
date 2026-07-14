@@ -1,5 +1,6 @@
 import React, { useContext, useState, useMemo } from 'react';
 import { AppContext, getSheetDisplay } from '../context/AppContext';
+import FirstAidKitsSection from './FirstAidKitsSection';
 import {
   Search, ShoppingBag, Heart, Shield, Stethoscope, FlaskConical,
   ArrowRight, Pill, Star, TrendingUp, Clock, ShoppingCart,
@@ -92,6 +93,9 @@ export default function CustomerDashboard({ setCurrentTab }) {
           ))}
         </div>
       </section>
+
+      {/* ===== FIRST AID KITS ===== */}
+      <FirstAidKitsSection setCurrentTab={setCurrentTab} />
 
       {/* ===== POPULAR MEDICINES ===== */}
       <section>
