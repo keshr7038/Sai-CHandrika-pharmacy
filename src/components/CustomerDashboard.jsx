@@ -19,9 +19,9 @@ const healthCategories = [
 ];
 
 
-export default function CustomerDashboard({ setCurrentTab }) {
+export default function CustomerDashboard({ setCurrentTab, searchQuery, setSearchQuery, setActiveCategory }) {
   const { medicines, sales, user, addToCart, cart, removeFromCart, updateCartQuantity } = useContext(AppContext);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchQuery || '');
 
   const availableMeds = useMemo(() =>
     medicines.filter(m => m.stock > 0).slice(0, 8),
@@ -52,16 +52,33 @@ export default function CustomerDashboard({ setCurrentTab }) {
         <div className="max-w-2xl">
           <p className="text-sm font-medium text-white/70 mb-1">Welcome back, {user?.name?.split(' ')[0]} 👋</p>
           <h1 className="text-2xl sm:text-3xl font-bold mb-4">Buy Medicines & Essentials</h1>
-          <div className="relative max-w-lg">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search medicines, health products..."
-              className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white text-gray-800 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-white/30 shadow-lg"
-            />
-          </div>
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (searchTerm.trim()) {
+                setSearchQuery(searchTerm);
+                setCurrentTab('shop');
+              }
+            }} 
+            className="relative max-w-lg flex gap-2"
+          >
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search medicines, health products..."
+                className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white text-gray-800 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 shadow-lg"
+              />
+            </div>
+            <button
+              type="submit"
+              className="px-6 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm transition-colors shadow-lg cursor-pointer"
+            >
+              Search
+            </button>
+          </form>
         </div>
         {/* Decorative Elements */}
         <div className="absolute top-4 right-8 hidden sm:block opacity-10">
@@ -82,7 +99,10 @@ export default function CustomerDashboard({ setCurrentTab }) {
           {healthCategories.map((cat) => (
             <button
               key={cat.name}
-              onClick={() => setCurrentTab('shop')}
+              onClick={() => {
+                setActiveCategory(cat.name);
+                setCurrentTab('shop');
+              }}
               className="health-category-card"
             >
               <div className={`health-category-icon ${cat.color}`}>

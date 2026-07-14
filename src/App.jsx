@@ -74,15 +74,41 @@ function OwnerDashboardWrapper() {
 
 function CustomerDashboardWrapper() {
   const [currentTab, setCurrentTab] = useState('dashboard');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
 
   const renderActiveView = () => {
     switch (currentTab) {
-      case 'dashboard': return <CustomerDashboard setCurrentTab={setCurrentTab} />;
-      case 'shop': return <Sales />;
+      case 'dashboard': 
+        return (
+          <CustomerDashboard 
+            setCurrentTab={setCurrentTab} 
+            searchQuery={searchQuery} 
+            setSearchQuery={setSearchQuery} 
+            setActiveCategory={setActiveCategory} 
+          />
+        );
+      case 'shop': 
+        return (
+          <Sales 
+            initialSearchQuery={searchQuery} 
+            setInitialSearchQuery={setSearchQuery} 
+            activeCategory={activeCategory} 
+            setActiveCategory={setActiveCategory} 
+          />
+        );
       case 'orders': return <Transactions />;
       case 'ai-assistant': return <AIChat />;
       case 'profile': return <Profile />;
-      default: return <CustomerDashboard setCurrentTab={setCurrentTab} />;
+      default: 
+        return (
+          <CustomerDashboard 
+            setCurrentTab={setCurrentTab} 
+            searchQuery={searchQuery} 
+            setSearchQuery={setSearchQuery} 
+            setActiveCategory={setActiveCategory} 
+          />
+        );
     }
   };
 

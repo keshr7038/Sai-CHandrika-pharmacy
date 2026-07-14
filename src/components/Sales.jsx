@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo } from 'react';
+import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { AppContext, getSheetDisplay } from '../context/AppContext';
 import InvoiceModal from './InvoiceModal';
 import {
@@ -51,7 +51,12 @@ const loadRazorpayScript = () => {
   });
 };
 
-export default function Sales() {
+export default function Sales({
+  initialSearchQuery,
+  setInitialSearchQuery,
+  activeCategory: propActiveCategory,
+  setActiveCategory: propSetActiveCategory
+}) {
   const {
     user,
     medicines,
@@ -62,18 +67,41 @@ export default function Sales() {
     updateCartQuantity,
     clearCart,
     generateBill,
+    payments,
     markPaymentSuccess,
     cancelPendingSale,
   } = useContext(AppContext);
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery || '');
+  const [activeCategory, setActiveCategory] = useState(propActiveCategory || 'All');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [discountPercent, setDiscountPercent] = useState(0);
   const [taxPercent, setTaxPercent] = useState(8);
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [invoiceData, setInvoiceData] = useState(null);
+
+  // Sync state back to parent if updated locally
+  useEffect(() => {
+    if (setInitialSearchQuery) setInitialSearchQuery(searchQuery);
+  }, [searchQuery, setInitialSearchQuery]);
+
+  useEffect(() => {
+    if (propSetActiveCategory) propSetActiveCategory(activeCategory);
+  }, [activeCategory, propSetActiveCategory]);
+
+  // Sync state from parent props if updated externally (like dashboard clicks)
+  useEffect(() => {
+    if (initialSearchQuery !== undefined && initialSearchQuery !== searchQuery) {
+      setSearchQuery(initialSearchQuery);
+    }
+  }, [initialSearchQuery]);
+
+  useEffect(() => {
+    if (propActiveCategory !== undefined && propActiveCategory !== activeCategory) {
+      setActiveCategory(propActiveCategory);
+    }
+  }, [propActiveCategory]);
 
   // Razorpay Payment States
   const [paymentStatus, setPaymentStatus] = useState('none'); // 'none' | 'initiating' | 'paying' | 'verifying' | 'success' | 'failed'
