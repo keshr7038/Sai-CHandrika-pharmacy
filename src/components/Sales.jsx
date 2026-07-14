@@ -710,7 +710,7 @@ export default function Sales({
                 {/* Dynamic QR Code */}
                 <div className="inline-block p-3 bg-white rounded-xl border-2 border-primary-100 shadow-sm mx-auto">
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=6309337535@ybl&pn=Sai%20Chandrika%20Pharmacy&am=${mockTxn?.total || 0}&cu=INR&tn=Invoice%20${mockTxn?.id || ''}`}
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`upi://pay?pa=6309337535@ybl&pn=Sai Chandrika Pharmacy&am=${mockTxn?.total || 0}&cu=INR&tn=Invoice ${mockTxn?.id || ''}`)}`}
                     alt="UPI QR Code"
                     className="w-44 h-44 rounded-lg object-contain mx-auto"
                   />
