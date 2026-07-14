@@ -373,14 +373,46 @@ export default function Sales() {
                     </div>
 
                     {/* Add to Cart Button */}
-                    <button
-                      onClick={() => addToCart(med)}
-                      disabled={isOutOfStock}
-                      className="btn-primary btn-sm w-full justify-center"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      Add to Cart
-                    </button>
+                    {inCartQty > 0 ? (
+                      <div className="flex items-center justify-between bg-primary-50 rounded-xl border border-primary-200 overflow-hidden h-9">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (inCartQty === 1) {
+                              removeFromCart(med.id);
+                            } else {
+                              updateCartQuantity(med.id, inCartQty - 1);
+                            }
+                          }}
+                          className="w-10 h-full flex items-center justify-center text-primary-700 hover:bg-primary-100 transition-colors font-bold text-sm cursor-pointer"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="flex-1 text-center text-xs font-extrabold text-primary-700 font-mono">
+                          {inCartQty} in Cart
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (inCartQty < med.stock) {
+                              updateCartQuantity(med.id, inCartQty + 1);
+                            }
+                          }}
+                          className="w-10 h-full flex items-center justify-center text-primary-700 hover:bg-primary-100 transition-colors font-bold text-sm cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => addToCart(med)}
+                        disabled={isOutOfStock}
+                        className="btn-primary btn-sm w-full justify-center"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Add to Cart
+                      </button>
+                    )}
                   </div>
                 );
               })}

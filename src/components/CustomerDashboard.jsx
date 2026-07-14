@@ -4,7 +4,7 @@ import FirstAidKitsSection from './FirstAidKitsSection';
 import {
   Search, ShoppingBag, Heart, Shield, Stethoscope, FlaskConical,
   ArrowRight, Pill, Star, TrendingUp, Clock, ShoppingCart,
-  Sparkles, ChevronRight, BadgePercent, Truck, Package
+  Sparkles, ChevronRight, BadgePercent, Truck, Package, Plus, Minus
 } from 'lucide-react';
 
 const healthCategories = [
@@ -20,7 +20,7 @@ const healthCategories = [
 
 
 export default function CustomerDashboard({ setCurrentTab }) {
-  const { medicines, sales, user, addToCart, cart } = useContext(AppContext);
+  const { medicines, sales, user, addToCart, cart, removeFromCart, updateCartQuantity } = useContext(AppContext);
   const [searchTerm, setSearchTerm] = useState('');
 
   const availableMeds = useMemo(() =>
@@ -130,24 +130,53 @@ export default function CustomerDashboard({ setCurrentTab }) {
                   )}
                 </div>
                 {/* Price + Add to Cart */}
-                <div className="mt-auto flex items-center justify-between">
+                <div className="mt-auto flex items-center justify-between gap-3">
                   <div>
                     <p className="text-base font-bold text-primary-700">{formatCurrency(med.sellingPrice)}</p>
                     <p className="text-[10px] text-gray-400 line-through">{formatCurrency(med.sellingPrice * 1.2)}</p>
                   </div>
-                  <button
-                    onClick={() => addToCart(med)}
-                    disabled={med.stock <= 0}
-                    className="btn-primary btn-sm relative"
-                  >
-                    <ShoppingCart className="w-3.5 h-3.5" />
-                    <span>Add</span>
-                    {inCartQty > 0 && (
-                      <span className="absolute -top-2 -right-2 w-5 h-5 bg-accent-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                        {inCartQty}
-                      </span>
+                  <div className="w-24 shrink-0">
+                    {inCartQty > 0 ? (
+                      <div className="flex items-center justify-between bg-primary-50 rounded-xl border border-primary-200 overflow-hidden h-9">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (inCartQty === 1) {
+                              removeFromCart(med.id);
+                            } else {
+                              updateCartQuantity(med.id, inCartQty - 1);
+                            }
+                          }}
+                          className="w-8 h-full flex items-center justify-center text-primary-700 hover:bg-primary-100 transition-colors font-bold text-sm cursor-pointer"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="flex-1 text-center text-xs font-extrabold text-primary-700 font-mono">
+                          {inCartQty}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (inCartQty < med.stock) {
+                              updateCartQuantity(med.id, inCartQty + 1);
+                            }
+                          }}
+                          className="w-8 h-full flex items-center justify-center text-primary-700 hover:bg-primary-100 transition-colors font-bold text-sm cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => addToCart(med)}
+                        disabled={med.stock <= 0}
+                        className="w-full btn-primary btn-sm flex items-center justify-center gap-1 relative py-2 px-3 rounded-xl"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add</span>
+                      </button>
                     )}
-                  </button>
+                  </div>
                 </div>
               </div>
             );
