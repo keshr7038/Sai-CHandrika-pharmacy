@@ -10,7 +10,7 @@ import {
 
 export default function Layout({ children, currentTab, setCurrentTab }) {
   const navigate = useNavigate();
-  const { user, logout, darkMode, toggleDarkMode, medicines, notifications, markNotificationRead, clearNotifications } = useContext(AppContext);
+  const { user, logout, darkMode, toggleDarkMode, medicines, notifications, markNotificationRead, clearNotifications, realtimeStatus } = useContext(AppContext);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -65,8 +65,9 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
 
   const getNotifIcon = (type) => {
     switch (type) {
-      case 'success': return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'success': return <CheckCircle className="w-4 h-4 text-emerald-500" />;
       case 'warning': return <AlertTriangle className="w-4 h-4 text-amber-500" />;
+      case 'error': return <AlertTriangle className="w-4 h-4 text-red-500" />;
       default: return <Info className="w-4 h-4 text-blue-500" />;
     }
   };
@@ -133,6 +134,13 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
+          {realtimeStatus === 'reconnecting' && (
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-200 text-[10px] font-bold animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              Reconnecting...
+            </span>
+          )}
+
           {/* Notification Bell */}
           <div ref={notifRef} className="relative">
             <button

@@ -107,6 +107,9 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('saichandrika_appointments', JSON.stringify(appointments));
   }, [appointments]);
+  const [highlightedApptId, setHighlightedApptId] = useState(null);
+  const [realtimeStatus, setRealtimeStatus] = useState('connected');
+
   const [smsLogs, setSmsLogs] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [twilioConfig, setTwilioConfigState] = useState(getTwilioConfig);
@@ -250,6 +253,63 @@ export const AppProvider = ({ children }) => {
       setLoading(false);
     }
   }, [user]);
+
+  // Supabase Realtime Subscription Effect
+  useEffect(() => {
+    if (!user) return;
+    
+    setRealtimeStatus('connected');
+
+    const channel = supabase
+      .channel('appointments-realtime-channel')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'appointments' },
+        (payload) => {
+          console.log('Appointments postgres event received:', payload);
+          if (payload.eventType === 'INSERT') {
+            const newAppt = payload.new;
+            if (user.role === 'customer' && newAppt.customer_email !== user.email) {
+              return;
+            }
+            
+            setAppointments(prev => {
+              if (prev.some(a => a.id === newAppt.id)) return prev;
+              return [...prev, newAppt];
+            });
+
+            setHighlightedApptId(newAppt.id);
+            setTimeout(() => setHighlightedApptId(null), 3000);
+
+            addNotification(`📅 New Appointment Booked: ${newAppt.patient_name} (ID: ${newAppt.id})`, 'info');
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedAppt = payload.new;
+            if (user.role === 'customer' && updatedAppt.customer_email !== user.email) {
+              return;
+            }
+            
+            setAppointments(prev => prev.map(a => a.id === updatedAppt.id ? updatedAppt : a));
+            addNotification(`📅 Appointment ${updatedAppt.id} status updated to: ${updatedAppt.status}`, 'info');
+          } else if (payload.eventType === 'DELETE') {
+            const oldAppt = payload.old;
+            setAppointments(prev => prev.filter(a => a.id !== oldAppt.id));
+            addNotification(`❌ Appointment ${oldAppt.id} has been removed.`, 'warning');
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setRealtimeStatus('connected');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          setRealtimeStatus('reconnecting');
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, addNotification]);
+
 
   // Load data when user logs in
   useEffect(() => {
@@ -1062,6 +1122,7 @@ export const AppProvider = ({ children }) => {
       sendSms, addNotification, markNotificationRead, clearNotifications,
       sendAiMessage, updateTwilioConfig, getSheetDisplay, loadAllData,
       bookAppointment, updateAppointmentStatus, updateAppointment,
+      realtimeStatus, highlightedApptId,
     }}>
       {children}
     </AppContext.Provider>

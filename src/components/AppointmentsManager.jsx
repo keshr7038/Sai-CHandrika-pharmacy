@@ -20,7 +20,7 @@ const defaultScheduleConfig = {
 };
 
 export default function AppointmentsManager() {
-  const { appointments, medicines, updateAppointment, addNotification } = useContext(AppContext);
+  const { appointments, medicines, updateAppointment, addNotification, highlightedApptId } = useContext(AppContext);
   const [activeTab, setActiveTab] = useState('list'); // 'list' or 'settings'
   
   // Filtering & Search
@@ -276,6 +276,36 @@ export default function AppointmentsManager() {
       {activeTab === 'list' ? (
         // ============ APPOINTMENTS LIST VIEW ============
         <div className="card p-6 bg-white border border-gray-100 space-y-5">
+          {/* Stats Counters Row */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100/60 flex flex-col justify-between">
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Total Bookings</span>
+              <p className="text-xl font-black text-gray-800 mt-1">{appointments.length}</p>
+            </div>
+            <div className="bg-amber-50/30 p-4 rounded-2xl border border-amber-100/50 flex flex-col justify-between">
+              <span className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">Pending</span>
+              <p className="text-xl font-black text-amber-750 mt-1">{appointments.filter(a => a.status === 'Pending').length}</p>
+            </div>
+            <div className="bg-emerald-50/30 p-4 rounded-2xl border border-emerald-100/50 flex flex-col justify-between">
+              <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Confirmed</span>
+              <p className="text-xl font-black text-emerald-700 mt-1">{appointments.filter(a => a.status === 'Confirmed').length}</p>
+            </div>
+            <div className="bg-blue-50/30 p-4 rounded-2xl border border-blue-100/50 flex flex-col justify-between">
+              <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Completed</span>
+              <p className="text-xl font-black text-blue-700 mt-1">{appointments.filter(a => a.status === 'Completed').length}</p>
+            </div>
+            <div className="bg-red-50/30 p-4 rounded-2xl border border-red-100/50 flex flex-col justify-between">
+              <span className="text-[10px] text-red-600 font-bold uppercase tracking-wider">Cancelled</span>
+              <p className="text-xl font-black text-red-750 mt-1">{appointments.filter(a => a.status === 'Cancelled').length}</p>
+            </div>
+            <div className="bg-primary-50/30 p-4 rounded-2xl border border-primary-100/50 flex flex-col justify-between">
+              <span className="text-[10px] text-primary-600 font-bold uppercase tracking-wider">Today's</span>
+              <p className="text-xl font-black text-primary-700 mt-1">
+                {appointments.filter(a => a.appointment_date === new Date().toISOString().split('T')[0]).length}
+              </p>
+            </div>
+          </div>
+
           {/* Filters Bar */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-b border-gray-50 pb-4">
             {/* Search */}
@@ -333,7 +363,14 @@ export default function AppointmentsManager() {
               </thead>
               <tbody>
                 {filteredAppointments.map((appt) => (
-                  <tr key={appt.id} className="table-row">
+                  <tr 
+                    key={appt.id} 
+                    className={`table-row transition-all duration-700 ${
+                      highlightedApptId === appt.id 
+                        ? 'bg-emerald-50/70 border-l-4 border-l-emerald-500 scale-[1.002] shadow-sm animate-pulse' 
+                        : ''
+                    }`}
+                  >
                     <td className="font-bold text-gray-800">{appt.id}</td>
                     <td>
                       <p className="font-bold text-gray-800">{appt.patient_name}</p>
