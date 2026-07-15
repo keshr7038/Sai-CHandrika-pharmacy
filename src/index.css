@@ -6,22 +6,12 @@
 
 @layer base {
   body {
-    @apply text-gray-900 font-sans antialiased;
-    background-image: url('https://res.cloudinary.com/diancfp03/image/upload/v1784022173/ChatGPT_Image_Jul_14_2026_01_25_21_PM_flvpy8.png');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
     scroll-behavior: smooth;
   }
 
   body.dark {
-    @apply text-dark-text;
-    background-image: linear-gradient(rgba(17, 24, 39, 0.9), rgba(17, 24, 39, 0.9)), url('https://res.cloudinary.com/diancfp03/image/upload/v1784022173/ChatGPT_Image_Jul_14_2026_01_25_21_PM_flvpy8.png');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
+    @apply bg-dark-bg text-dark-text;
   }
 
   ::selection {
@@ -274,9 +264,7 @@
      ONBOARDING DARK THEME (Login / Signup)
      ======================================== */
   .onboarding-container {
-    @apply min-h-screen flex;
-    background: rgba(17, 24, 39, 0.8);
-    backdrop-filter: blur(3px);
+    @apply min-h-screen bg-dark-bg flex;
   }
 
   .onboarding-card {
