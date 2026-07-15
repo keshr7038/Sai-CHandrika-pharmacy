@@ -10,7 +10,7 @@ import {
 
 export default function Layout({ children, currentTab, setCurrentTab }) {
   const navigate = useNavigate();
-  const { user, logout, darkMode, toggleDarkMode, medicines, notifications, markNotificationRead, clearNotifications, notificationHistory } = useContext(AppContext);
+  const { user, logout, darkMode, toggleDarkMode, medicines, notifications, markNotificationRead, clearNotifications } = useContext(AppContext);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -19,21 +19,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
 
   const isOwner = user?.role === 'owner';
   const lowStockCount = medicines.filter(m => m.stock <= m.minStock).length;
-  
-  const allNotifs = user?.role === 'customer'
-    ? [
-        ...notificationHistory.map(n => ({
-          id: n.id,
-          message: `${n.title}: ${n.message}`,
-          type: n.type,
-          read: n.read,
-          timestamp: n.created_at
-        })),
-        ...notifications
-      ]
-    : notifications;
-  const unreadCount = allNotifs.filter(n => !n.read).length;
-
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -67,25 +53,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
     { id: 'profile', label: 'My Profile', icon: UserCircle },
   ];
 
-  const doctorTabs = [
-    { id: 'dashboard', label: 'Consultations', icon: LayoutDashboard },
-    { id: 'profile', label: 'My Profile', icon: UserCircle },
-  ];
-
-  const deliveryTabs = [
-    { id: 'dashboard', label: 'Deliveries Queue', icon: LayoutDashboard },
-    { id: 'profile', label: 'My Profile', icon: UserCircle },
-  ];
-
-  let tabs = customerTabs;
-  if (user?.role === 'owner') {
-    tabs = ownerTabs;
-  } else if (user?.role === 'doctor') {
-    tabs = doctorTabs;
-  } else if (user?.role === 'delivery_executive') {
-    tabs = deliveryTabs;
-  }
-
+  const tabs = isOwner ? ownerTabs : customerTabs;
   const userInitials = user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
 
   const handleTabClick = (tabId) => {
@@ -155,7 +123,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
             <div className="hidden sm:block">
               <h1 className="text-sm font-bold text-white leading-tight">Sai Chandrika Pharmacy</h1>
               <p className="text-[10px] text-white/60 font-medium leading-tight">
-                {user?.role === 'owner' ? 'Admin Portal' : (user?.role === 'doctor' ? 'Doctor Portal' : (user?.role === 'delivery_executive' ? 'Delivery Portal' : 'Customer Portal'))}
+                {isOwner ? 'Owner Portal' : 'Customer Portal'}
               </p>
             </div>
           </div>
@@ -191,8 +159,8 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
                   </div>
                 </div>
                 <div className="max-h-72 overflow-y-auto">
-                  {allNotifs.length > 0 ? (
-                    allNotifs.slice(0, 8).map((n) => (
+                  {notifications.length > 0 ? (
+                    notifications.slice(0, 8).map((n) => (
                       <div
                         key={n.id}
                         onClick={() => markNotificationRead(n.id)}

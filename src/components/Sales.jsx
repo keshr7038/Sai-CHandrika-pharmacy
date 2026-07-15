@@ -14,12 +14,7 @@ import {
   Pill,
   Loader,
   QrCode,
-  MapPin,
-  Truck,
-  Home,
-  PlusCircle,
 } from 'lucide-react';
-
 
 const Receipt = ({ className }) => (
   <svg
@@ -88,9 +83,6 @@ export default function Sales() {
     generateBill,
     markPaymentSuccess,
     cancelPendingSale,
-    deliveryAddresses,
-    deliverySettings,
-    saveAddress,
   } = useContext(AppContext);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -101,18 +93,6 @@ export default function Sales() {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [invoiceData, setInvoiceData] = useState(null);
-
-  // Delivery & Address checkout states
-  const [deliveryMode, setDeliveryMode] = useState('pickup'); // 'pickup' | 'delivery'
-  const [selectedAddressId, setSelectedAddressId] = useState('');
-  const [deliveryNotes, setDeliveryNotes] = useState('');
-  const [newAddrLine, setNewAddrLine] = useState('');
-  const [newCity, setNewCity] = useState('');
-  const [newPincode, setNewPincode] = useState('');
-  const [newLandmark, setNewLandmark] = useState('');
-  const [newPhone, setNewPhone] = useState('');
-  const [showAddressForm, setShowAddressForm] = useState(false);
-
 
   // Razorpay Payment States
   const [paymentStatus, setPaymentStatus] = useState('none'); // 'none' | 'initiating' | 'paying' | 'verifying' | 'success' | 'failed'
@@ -140,61 +120,10 @@ export default function Sales() {
     () => cart.reduce((sum, item) => sum + item.sellingPrice * item.quantity, 0),
     [cart]
   );
-
-  const deliveryCharge = useMemo(() => {
-    if (deliveryMode !== 'delivery' || !deliverySettings) return 0;
-    return cartSubtotal >= (deliverySettings.free_delivery_above || 500) ? 0 : (deliverySettings.charge || 40);
-  }, [deliveryMode, cartSubtotal, deliverySettings]);
-
-  const activeAddress = useMemo(() => {
-    if (!deliveryAddresses || deliveryAddresses.length === 0) return null;
-    return deliveryAddresses.find(a => a.id === selectedAddressId) || deliveryAddresses.find(a => a.is_default) || deliveryAddresses[0];
-  }, [deliveryAddresses, selectedAddressId]);
-
-  const isPincodeServiceable = useMemo(() => {
-    if (deliveryMode !== 'delivery' || !activeAddress || !deliverySettings) return true;
-    const allowed = (deliverySettings.serviceable_pincodes || '').split(',').map(p => p.trim());
-    return allowed.includes(activeAddress.pincode.trim());
-  }, [deliveryMode, activeAddress, deliverySettings]);
-
-  const isMinOrderMet = useMemo(() => {
-    if (deliveryMode !== 'delivery' || !deliverySettings) return true;
-    return cartSubtotal >= (deliverySettings.min_order_amount || 150);
-  }, [deliveryMode, cartSubtotal, deliverySettings]);
-
   const discountAmount = (cartSubtotal * discountPercent) / 100;
   const taxableAmount = cartSubtotal - discountAmount;
   const taxAmount = (taxableAmount * taxPercent) / 100;
-  const grandTotal = taxableAmount + taxAmount + deliveryCharge;
-
-  const handleAddAddress = async (e) => {
-    e.preventDefault();
-    if (!newAddrLine || !newCity || !newPincode || !newPhone) {
-      alert("Please fill all required address fields.");
-      return;
-    }
-    const res = await saveAddress({
-      address_line: newAddrLine,
-      city: newCity,
-      state: 'Telangana',
-      pincode: newPincode,
-      landmark: newLandmark,
-      phone: newPhone,
-      is_default: (deliveryAddresses || []).length === 0
-    });
-    if (res.success) {
-      setSelectedAddressId(res.address.id);
-      setShowAddressForm(false);
-      setNewAddrLine('');
-      setNewCity('');
-      setNewPincode('');
-      setNewLandmark('');
-      setNewPhone('');
-    } else {
-      alert(`Failed to save address: ${res.error}`);
-    }
-  };
-
+  const grandTotal = taxableAmount + taxAmount;
 
   const getCartQty = (medId) => {
     const item = cart.find((c) => c.medicineId === medId);
@@ -226,21 +155,6 @@ export default function Sales() {
       return;
     }
 
-    if (deliveryMode === 'delivery') {
-      if (!activeAddress) {
-        alert('Please add or select a delivery address.');
-        return;
-      }
-      if (!isPincodeServiceable) {
-        alert('Selected address pincode is not serviceable.');
-        return;
-      }
-      if (!isMinOrderMet) {
-        alert(`Minimum order amount for delivery is ₹${deliverySettings.min_order_amount}.`);
-        return;
-      }
-    }
-
     // For Customers, initiate Direct QR Payment Flow
     setPaymentStatus('initiating');
     setPaymentError('');
@@ -254,14 +168,8 @@ export default function Sales() {
         discountPercent,
         taxPercent,
         user.name,
-        user.phone,
-        deliveryMode === 'delivery' && activeAddress ? {
-          deliveryAddressId: activeAddress.id,
-          deliveryCharge: deliveryCharge,
-          notes: deliveryNotes
-        } : null
+        user.phone
       );
-
 
       if (!txn) {
         throw new Error('Failed to create pending checkout record in database.');
@@ -686,133 +594,8 @@ export default function Sales() {
                       ))}
                     </div>
                   </div>
-                  {/* Delivery Mode Selector (Customer Only) */}
-                  {user?.role === 'customer' && (
-                    <div className="space-y-3 border-t border-gray-100 pt-3">
-                      <label className="input-label">Delivery Preference</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => setDeliveryMode('pickup')}
-                          className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold cursor-pointer transition-all ${
-                            deliveryMode === 'pickup' ? 'bg-primary-600 text-white shadow-sm' : 'border border-gray-200 text-gray-600'
-                          }`}
-                        >
-                          <Home className="w-3.5 h-3.5" /> Store Pickup
-                        </button>
-                        <button
-                          onClick={() => setDeliveryMode('delivery')}
-                          className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold cursor-pointer transition-all ${
-                            deliveryMode === 'delivery' ? 'bg-primary-600 text-white shadow-sm' : 'border border-gray-200 text-gray-600'
-                          }`}
-                        >
-                          <Truck className="w-3.5 h-3.5" /> Home Delivery
-                        </button>
-                      </div>
-
-                      {deliveryMode === 'delivery' && (
-                        <div className="space-y-3 bg-gray-50/70 p-3 rounded-2xl border border-gray-100 animate-scale-in text-xs">
-                          <div className="flex justify-between items-center">
-                            <span className="font-bold text-gray-700">Select Delivery Address</span>
-                            <button
-                              onClick={() => setShowAddressForm(!showAddressForm)}
-                              className="text-primary-600 hover:underline flex items-center gap-1 text-[10px] font-bold"
-                            >
-                              <PlusCircle className="w-3 h-3" /> Add New
-                            </button>
-                          </div>
-
-                          {/* Address Form inline */}
-                          {showAddressForm && (
-                            <form onSubmit={handleAddAddress} className="space-y-2 bg-white p-3 rounded-xl border border-gray-200/50 mt-1">
-                              <input
-                                type="text"
-                                placeholder="Address Line (Street, Flat)*"
-                                value={newAddrLine}
-                                onChange={(e) => setNewAddrLine(e.target.value)}
-                                className="input text-[11px] !py-1 w-full"
-                                required
-                              />
-                              <div className="grid grid-cols-2 gap-2">
-                                <input
-                                  type="text"
-                                  placeholder="City*"
-                                  value={newCity}
-                                  onChange={(e) => setNewCity(e.target.value)}
-                                  className="input text-[11px] !py-1 w-full"
-                                  required
-                                />
-                                <input
-                                  type="text"
-                                  placeholder="Pincode*"
-                                  value={newPincode}
-                                  onChange={(e) => setNewPincode(e.target.value)}
-                                  className="input text-[11px] !py-1 w-full"
-                                  required
-                                />
-                              </div>
-                              <input
-                                type="text"
-                                placeholder="Landmark (Optional)"
-                                value={newLandmark}
-                                onChange={(e) => setNewLandmark(e.target.value)}
-                                className="input text-[11px] !py-1 w-full"
-                              />
-                              <input
-                                type="text"
-                                placeholder="Recipient Phone*"
-                                value={newPhone}
-                                onChange={(e) => setNewPhone(e.target.value)}
-                                className="input text-[11px] !py-1 w-full"
-                                required
-                              />
-                              <button type="submit" className="w-full btn-primary btn-sm justify-center py-1">
-                                Save Address
-                              </button>
-                            </form>
-                          )}
-
-                          {deliveryAddresses && deliveryAddresses.length > 0 ? (
-                            <select
-                              value={selectedAddressId}
-                              onChange={(e) => setSelectedAddressId(e.target.value)}
-                              className="input w-full py-1.5 text-xs rounded-xl mt-1 bg-white"
-                            >
-                              {deliveryAddresses.map(addr => (
-                                <option key={addr.id} value={addr.id}>
-                                  {addr.address_line}, {addr.city} ({addr.pincode})
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            !showAddressForm && <p className="text-[10px] text-gray-400">No saved addresses found. Please add one.</p>
-                          )}
-
-                          {activeAddress && (
-                            <div className="mt-1 space-y-1 bg-white p-2 rounded-xl border border-gray-100 text-[10px] text-gray-500">
-                              <p className="font-bold text-gray-700">Selected details:</p>
-                              <p className="truncate">{activeAddress.address_line}, {activeAddress.city}</p>
-                              <p>Pincode: {activeAddress.pincode} {!isPincodeServiceable && <span className="text-red-500 font-bold ml-1"> (Not Serviceable)</span>}</p>
-                            </div>
-                          )}
-
-                          {!isMinOrderMet && (
-                            <p className="text-[10px] font-bold text-red-500">⚠️ Minimum order for delivery is ₹{deliverySettings.min_order_amount}</p>
-                          )}
-
-                          <input
-                            type="text"
-                            placeholder="Delivery notes / instructions"
-                            value={deliveryNotes}
-                            onChange={(e) => setDeliveryNotes(e.target.value)}
-                            className="input text-[11px] !py-1.5 w-full mt-1 bg-white"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </>
               )}
-
 
               {/* Financial Summary */}
               <div className="bg-gray-50 rounded-xl p-3 space-y-1.5">
@@ -830,18 +613,6 @@ export default function Sales() {
                   <span>Tax / GST ({taxPercent}%)</span>
                   <span>+₹{taxAmount.toFixed(2)}</span>
                 </div>
-                {deliveryCharge > 0 && (
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>Delivery Charge</span>
-                    <span>+₹{deliveryCharge.toFixed(2)}</span>
-                  </div>
-                )}
-                {deliveryMode === 'delivery' && deliveryCharge === 0 && grandTotal > 0 && (
-                  <div className="flex justify-between text-[10px] text-green-600 font-bold">
-                    <span>Free Delivery Applied!</span>
-                    <span>₹0.00</span>
-                  </div>
-                )}
                 <div className="border-t border-gray-200 pt-1.5 flex justify-between">
                   <span className="text-sm font-bold text-gray-900">
                     Grand Total
@@ -851,7 +622,6 @@ export default function Sales() {
                   </span>
                 </div>
               </div>
-
 
               {/* Checkout Button */}
               <button

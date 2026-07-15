@@ -15,8 +15,6 @@ import Transactions from './components/Transactions';
 import Profile from './components/Profile';
 import AIChat from './components/AIChat';
 import Customers from './components/Customers';
-import DoctorDashboard from './components/DoctorDashboard';
-import DeliveryExecutiveDashboard from './components/DeliveryExecutiveDashboard';
 import './App.css';
 
 // ===== PROTECTED ROUTE WRAPPERS =====
@@ -42,40 +40,11 @@ function CustomerProtectedRoute({ children }) {
   }
   
   if (user.role !== 'customer') {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/owner-dashboard" replace />;
   }
   
   return children;
 }
-
-function DoctorProtectedRoute({ children }) {
-  const { user } = useContext(AppContext);
-  
-  if (!user) {
-    return <Navigate to="/" replace />;
-  }
-  
-  if (user.role !== 'doctor') {
-    return <Navigate to="/" replace />;
-  }
-  
-  return children;
-}
-
-function DeliveryExecutiveProtectedRoute({ children }) {
-  const { user } = useContext(AppContext);
-  
-  if (!user) {
-    return <Navigate to="/" replace />;
-  }
-  
-  if (user.role !== 'delivery_executive') {
-    return <Navigate to="/" replace />;
-  }
-  
-  return children;
-}
-
 
 // ===== DASHBOARD WRAPPERS WITH STATE NAVIGATION =====
 function OwnerDashboardWrapper() {
@@ -123,43 +92,6 @@ function CustomerDashboardWrapper() {
     </Layout>
   );
 }
-
-function DoctorDashboardWrapper() {
-  const [currentTab, setCurrentTab] = useState('dashboard');
-
-  const renderActiveView = () => {
-    switch (currentTab) {
-      case 'dashboard': return <DoctorDashboard setCurrentTab={setCurrentTab} />;
-      case 'profile': return <Profile />;
-      default: return <DoctorDashboard setCurrentTab={setCurrentTab} />;
-    }
-  };
-
-  return (
-    <Layout currentTab={currentTab} setCurrentTab={setCurrentTab}>
-      {renderActiveView()}
-    </Layout>
-  );
-}
-
-function DeliveryExecutiveDashboardWrapper() {
-  const [currentTab, setCurrentTab] = useState('dashboard');
-
-  const renderActiveView = () => {
-    switch (currentTab) {
-      case 'dashboard': return <DeliveryExecutiveDashboard setCurrentTab={setCurrentTab} />;
-      case 'profile': return <Profile />;
-      default: return <DeliveryExecutiveDashboard setCurrentTab={setCurrentTab} />;
-    }
-  };
-
-  return (
-    <Layout currentTab={currentTab} setCurrentTab={setCurrentTab}>
-      {renderActiveView()}
-    </Layout>
-  );
-}
-
 
 // ===== MAIN APP CONTENT =====
 function AppContent() {
@@ -230,26 +162,6 @@ function AppContent() {
           <CustomerProtectedRoute>
             <CustomerDashboardWrapper />
           </CustomerProtectedRoute>
-        } 
-      />
-
-      {/* Protected Doctor Dashboard */}
-      <Route 
-        path="/doctor-dashboard" 
-        element={
-          <DoctorProtectedRoute>
-            <DoctorDashboardWrapper />
-          </DoctorProtectedRoute>
-        } 
-      />
-
-      {/* Protected Delivery Executive Dashboard */}
-      <Route 
-        path="/delivery-dashboard" 
-        element={
-          <DeliveryExecutiveProtectedRoute>
-            <DeliveryExecutiveDashboardWrapper />
-          </DeliveryExecutiveProtectedRoute>
         } 
       />
 
