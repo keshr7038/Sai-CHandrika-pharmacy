@@ -3,10 +3,11 @@ import { AppContext } from '../context/AppContext';
 import { generateAvailableSlots } from './DoctorConsultation';
 import { 
   Calendar, Clock, User, Phone, CheckCircle, XCircle, Search, 
-  Filter, CalendarDays, RefreshCw, Settings, Trash2, Plus, CalendarRange
+  Filter, CalendarDays, RefreshCw, Settings, Trash2, Plus, CalendarRange,
+  FileText, Activity, AlertCircle, Trash, Pill, Edit3, X
 } from 'lucide-react';
 
-const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
+const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val || 0);
 const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
 const defaultScheduleConfig = {
@@ -19,7 +20,7 @@ const defaultScheduleConfig = {
 };
 
 export default function AppointmentsManager() {
-  const { appointments, updateAppointmentStatus, addNotification } = useContext(AppContext);
+  const { appointments, medicines, updateAppointment, addNotification } = useContext(AppContext);
   const [activeTab, setActiveTab] = useState('list'); // 'list' or 'settings'
   
   // Filtering & Search
@@ -42,6 +43,24 @@ export default function AppointmentsManager() {
     }
   });
 
+  // Post-Consultation Form States
+  const [consultingAppt, setConsultingAppt] = useState(null);
+  const [diagnosis, setDiagnosis] = useState('');
+  const [notes, setNotes] = useState('');
+  const [actualDuration, setActualDuration] = useState('15');
+  const [consultationFee, setConsultationFee] = useState('');
+  const [doctorRemarks, setDoctorRemarks] = useState('');
+  const [followUpDate, setFollowUpDate] = useState('');
+  const [otherCharges, setOtherCharges] = useState('0');
+  const [discount, setDiscount] = useState('0');
+  const [gst, setGst] = useState('0');
+  
+  // Prescribed Medicines State
+  const [prescribedMeds, setPrescribedMeds] = useState([]);
+  const [medSearchTerm, setMedSearchTerm] = useState('');
+  const [selectedMedId, setSelectedMedId] = useState('');
+  const [selectedMedQty, setSelectedMedQty] = useState(1);
+
   const saveConfig = (newConfig) => {
     setScheduleConfig(newConfig);
     localStorage.setItem('saichandrika_doctor_schedule', JSON.stringify(newConfig));
@@ -61,6 +80,15 @@ export default function AppointmentsManager() {
     });
   }, [appointments, searchTerm, statusFilter, dateFilter]);
 
+  // Filtered medicines for search in prescription
+  const filteredPrescriptionMeds = useMemo(() => {
+    if (!medSearchTerm) return [];
+    return medicines.filter(m => 
+      m.name.toLowerCase().includes(medSearchTerm.toLowerCase()) || 
+      m.genericName.toLowerCase().includes(medSearchTerm.toLowerCase())
+    ).slice(0, 5);
+  }, [medicines, medSearchTerm]);
+
   // Available slots for rescheduling
   const bookedSlotsOnRescheduleDate = useMemo(() => {
     if (!rescheduleDate) return [];
@@ -75,7 +103,7 @@ export default function AppointmentsManager() {
   }, [rescheduleDate, bookedSlotsOnRescheduleDate, scheduleConfig]);
 
   const handleStatusChange = async (apptId, status) => {
-    const res = await updateAppointmentStatus(apptId, status);
+    const res = await updateAppointment(apptId, { status });
     if (res.success) {
       addNotification(`📅 Appointment ${apptId} status updated to: ${status}`, 'success');
     }
@@ -88,12 +116,98 @@ export default function AppointmentsManager() {
       return;
     }
 
-    const res = await updateAppointmentStatus(reschedulingAppt.id, 'Pending', rescheduleDate, rescheduleSlot);
+    const res = await updateAppointment(reschedulingAppt.id, {
+      status: 'Pending',
+      appointment_date: rescheduleDate,
+      time_slot: rescheduleSlot
+    });
+
     if (res.success) {
       addNotification(`📅 Appointment ${reschedulingAppt.id} rescheduled successfully!`, 'success');
       setReschedulingAppt(null);
       setRescheduleDate('');
       setRescheduleSlot('');
+    }
+  };
+
+  // Add medicine to prescription list
+  const handleAddPrescribedMed = (med) => {
+    const qty = parseInt(selectedMedQty);
+    if (qty > med.stock) {
+      alert(`Insufficient stock. Only ${med.stock} sheets/items available.`);
+      return;
+    }
+
+    const existingIndex = prescribedMeds.findIndex(m => m.medicineId === med.id);
+    if (existingIndex > -1) {
+      const updated = [...prescribedMeds];
+      const newQty = updated[existingIndex].quantity + qty;
+      if (newQty > med.stock) {
+        alert(`Cannot add more. Exceeds total stock of ${med.stock}.`);
+        return;
+      }
+      updated[existingIndex].quantity = newQty;
+      updated[existingIndex].subtotal = newQty * med.sellingPrice;
+      setPrescribedMeds(updated);
+    } else {
+      setPrescribedMeds([...prescribedMeds, {
+        medicineId: med.id,
+        name: med.name,
+        quantity: qty,
+        price: med.sellingPrice,
+        subtotal: qty * med.sellingPrice
+      }]);
+    }
+    setMedSearchTerm('');
+    setSelectedMedQty(1);
+  };
+
+  const handleRemovePrescribedMed = (medicineId) => {
+    setPrescribedMeds(prescribedMeds.filter(m => m.medicineId !== medicineId));
+  };
+
+  // Open consultation portal
+  const handleOpenConsultation = (appt) => {
+    setConsultingAppt(appt);
+    setDiagnosis(appt.diagnosis || '');
+    setNotes(appt.consultation_notes || '');
+    setActualDuration(appt.actual_duration?.toString() || '15');
+    setConsultationFee(appt.consultation_fee?.toString() || '500');
+    setDoctorRemarks(appt.doctor_remarks || '');
+    setFollowUpDate(appt.follow_up_date || '');
+    setOtherCharges(appt.other_charges?.toString() || '0');
+    setDiscount(appt.discount?.toString() || '0');
+    setGst(appt.gst?.toString() || '0');
+    setPrescribedMeds(appt.prescribed_medicines || []);
+  };
+
+  // Save consultation summary & trigger invoice generation
+  const handleSaveConsultation = async (e) => {
+    e.preventDefault();
+    if (!consultationFee || parseFloat(consultationFee) < 0) {
+      alert("Consultation fee is required to generate the final invoice.");
+      return;
+    }
+
+    const updatePayload = {
+      status: 'Completed',
+      diagnosis,
+      consultation_notes: notes,
+      actual_duration: parseInt(actualDuration),
+      consultation_fee: parseFloat(consultationFee),
+      prescribed_medicines: prescribedMeds,
+      follow_up_date: followUpDate || null,
+      doctor_remarks: doctorRemarks,
+      other_charges: parseFloat(otherCharges || 0),
+      discount: parseFloat(discount || 0),
+      gst: parseFloat(gst || 0),
+      payment_status: consultingAppt.payment_status || 'Pending'
+    };
+
+    const res = await updateAppointment(consultingAppt.id, updatePayload);
+    if (res.success) {
+      addNotification(`🏥 Consultation summary & Invoice generated for ${consultingAppt.id}!`, 'success');
+      setConsultingAppt(null);
     }
   };
 
@@ -213,7 +327,7 @@ export default function AppointmentsManager() {
                   <th className="py-3 px-5">Patient Details</th>
                   <th className="py-3 px-5">Date & Time</th>
                   <th className="py-3 px-5">Status</th>
-                  <th className="py-3 px-5">Fee</th>
+                  <th className="py-3 px-5">Fee / Invoice</th>
                   <th className="py-3 px-5">Actions</th>
                 </tr>
               </thead>
@@ -225,6 +339,17 @@ export default function AppointmentsManager() {
                       <p className="font-bold text-gray-800">{appt.patient_name}</p>
                       <p className="text-xs text-gray-400">{appt.patient_phone} • {appt.patient_age} yrs • {appt.patient_gender}</p>
                       <p className="text-[10px] text-gray-400 font-medium italic mt-0.5">Reason: {appt.reason || 'General Checkup'}</p>
+                      {appt.prescription_file_url && (
+                        <a 
+                          href={appt.prescription_file_url} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-[10px] text-primary-600 hover:underline font-bold mt-1"
+                        >
+                          <FileText className="w-3 h-3" />
+                          View Uploaded Report
+                        </a>
+                      )}
                     </td>
                     <td>
                       <p className="font-semibold text-gray-700">{formatDate(appt.appointment_date)}</p>
@@ -239,35 +364,53 @@ export default function AppointmentsManager() {
                         {appt.status}
                       </span>
                     </td>
-                    <td className="font-bold text-primary-750">{formatCurrency(appt.consultation_fee)}</td>
+                    <td className="font-bold">
+                      {appt.consultation_fee ? (
+                        <div className="flex flex-col">
+                          <span className="text-primary-750">{formatCurrency(appt.consultation_fee)}</span>
+                          <span className={`text-[9px] font-bold uppercase tracking-wider ${
+                            appt.payment_status === 'Paid' ? 'text-emerald-600' : 'text-rose-600 animate-pulse'
+                          }`}>
+                            {appt.payment_status || 'Pending'}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-gray-400 italic">No fee entered</span>
+                      )}
+                    </td>
                     <td>
                       <div className="flex items-center gap-2">
                         {appt.status === 'Pending' && (
                           <button
                             onClick={() => handleStatusChange(appt.id, 'Confirmed')}
-                            className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm cursor-pointer transition-colors"
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-bold px-2 py-1.5 rounded-lg shadow-sm cursor-pointer transition-colors"
                           >
                             Confirm
                           </button>
                         )}
+                        
+                        {appt.status !== 'Cancelled' && (
+                          <button
+                            onClick={() => handleOpenConsultation(appt)}
+                            className="bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-sm cursor-pointer transition-colors flex items-center gap-1"
+                          >
+                            <Edit3 className="w-3 h-3" />
+                            {appt.status === 'Completed' ? 'Edit Consult' : 'Consult Now'}
+                          </button>
+                        )}
+
                         {appt.status !== 'Completed' && appt.status !== 'Cancelled' && (
                           <>
                             <button
                               onClick={() => setReschedulingAppt(appt)}
-                              className="bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm cursor-pointer transition-colors flex items-center gap-0.5"
+                              className="bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold px-2 py-1.5 rounded-lg shadow-sm cursor-pointer transition-colors flex items-center gap-0.5"
                             >
                               <RefreshCw className="w-2.5 h-2.5" />
                               Reschedule
                             </button>
                             <button
-                              onClick={() => handleStatusChange(appt.id, 'Completed')}
-                              className="bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm cursor-pointer transition-colors"
-                            >
-                              Complete
-                            </button>
-                            <button
                               onClick={() => handleStatusChange(appt.id, 'Cancelled')}
-                              className="bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm cursor-pointer transition-colors"
+                              className="bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold px-2 py-1.5 rounded-lg shadow-sm cursor-pointer transition-colors"
                             >
                               Cancel
                             </button>
@@ -334,7 +477,7 @@ export default function AppointmentsManager() {
             {/* Slots duration & Max appointments */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Appointment Duration</label>
+                <label className="block text-[11px] font-bold text-gray-600 uppercase tracking-wider mb-1">Default Duration (mins)</label>
                 <select
                   className="input py-2.5"
                   value={scheduleConfig.duration}
@@ -429,6 +572,268 @@ export default function AppointmentsManager() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ CONSULTATION & POST-BILLING FORM MODAL ============ */}
+      {consultingAppt && (
+        <div className="modal-overlay">
+          <div className="modal-container w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="modal-header">
+              <h3 className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+                <Activity className="w-5 h-5 text-primary-600" />
+                Clinical Consultation Desk
+              </h3>
+              <button
+                onClick={() => setConsultingAppt(null)}
+                className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveConsultation} className="p-6 space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                {/* LEFT COLUMN: Clinical Diagnoses & Notes */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-extrabold text-gray-800 border-l-4 border-primary-500 pl-2 uppercase tracking-wide">
+                    Medical Summary
+                  </h4>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Diagnosis *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Acute Viral Bronchitis / Gastropathy"
+                      className="input"
+                      value={diagnosis}
+                      onChange={(e) => setDiagnosis(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Consultation Clinical Notes</label>
+                    <textarea
+                      rows="3"
+                      placeholder="Enter clinical examination notes..."
+                      className="input py-2 resize-none"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Consultation Duration (mins)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        placeholder="e.g. 15"
+                        className="input"
+                        value={actualDuration}
+                        onChange={(e) => setActualDuration(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Follow-up Date (optional)</label>
+                      <input
+                        type="date"
+                        min={new Date().toISOString().split('T')[0]}
+                        className="input text-gray-700"
+                        value={followUpDate}
+                        onChange={(e) => setFollowUpDate(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Doctor Remarks / Instructions</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Take medicines after meals; Bed rest for 2 days."
+                      className="input"
+                      value={doctorRemarks}
+                      onChange={(e) => setDoctorRemarks(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* RIGHT COLUMN: Prescription (Medicines selection) */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-extrabold text-gray-800 border-l-4 border-primary-500 pl-2 uppercase tracking-wide">
+                    💊 Prescribe Medicines
+                  </h4>
+
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Search Medicine</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Type medicine name to search..."
+                          className="input"
+                          value={medSearchTerm}
+                          onChange={(e) => setMedSearchTerm(e.target.value)}
+                        />
+                        <input
+                          type="number"
+                          min="1"
+                          className="input w-16 text-center"
+                          value={selectedMedQty}
+                          onChange={(e) => setSelectedMedQty(e.target.value)}
+                        />
+                      </div>
+
+                      {/* Dropdown Results */}
+                      {filteredPrescriptionMeds.length > 0 && (
+                        <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-150 rounded-xl shadow-lg z-20 max-h-48 overflow-y-auto p-1.5 space-y-1">
+                          {filteredPrescriptionMeds.map(med => (
+                            <button
+                              key={med.id}
+                              type="button"
+                              onClick={() => handleAddPrescribedMed(med)}
+                              className="w-full text-left p-2 hover:bg-primary-50 rounded-lg text-xs flex justify-between items-center transition-colors cursor-pointer"
+                            >
+                              <div>
+                                <p className="font-bold text-gray-800">{med.name}</p>
+                                <p className="text-[10px] text-gray-400">Stock: {med.stock} sheets • {med.packaging}</p>
+                              </div>
+                              <span className="font-bold text-primary-700">{formatCurrency(med.sellingPrice)}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Prescribed List */}
+                    <div className="space-y-2 border border-gray-100 rounded-xl p-3 bg-gray-50/40 min-h-[140px] max-h-[180px] overflow-y-auto">
+                      {prescribedMeds.map(med => (
+                        <div key={med.medicineId} className="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-100 text-xs">
+                          <div>
+                            <p className="font-bold text-gray-700">{med.name}</p>
+                            <p className="text-[10px] text-gray-400">{med.quantity} x {formatCurrency(med.price)}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-gray-800">{formatCurrency(med.subtotal)}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemovePrescribedMed(med.medicineId)}
+                              className="p-1 hover:bg-red-50 text-red-500 rounded-md transition-colors cursor-pointer"
+                            >
+                              <Trash className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      {prescribedMeds.length === 0 && (
+                        <div className="py-10 text-center text-gray-400">
+                          <Pill className="w-7 h-7 mx-auto mb-1 text-gray-300" />
+                          <p className="text-[10px] font-medium">No medicines prescribed yet.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* POST-CONSULTATION INVOICE FORM FIELDS */}
+              <div className="border-t border-gray-150 pt-5 space-y-4">
+                <h4 className="text-xs font-extrabold text-gray-800 border-l-4 border-primary-500 pl-2 uppercase tracking-wide">
+                  📄 Consultation Fees & Invoicing Details
+                </h4>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Consultation Fee *</label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      placeholder="e.g. 500"
+                      className="input font-bold text-primary-750"
+                      value={consultationFee}
+                      onChange={(e) => setConsultationFee(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Other Facility Charges (optional)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="e.g. 100"
+                      className="input"
+                      value={otherCharges}
+                      onChange={(e) => setOtherCharges(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Special Discount (optional)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="e.g. 50"
+                      className="input text-red-600 font-semibold"
+                      value={discount}
+                      onChange={(e) => setDiscount(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">GST (optional)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="e.g. 40"
+                      className="input text-gray-600"
+                      value={gst}
+                      onChange={(e) => setGst(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Grand Total Preview */}
+                <div className="p-4 bg-primary-50/40 border border-primary-100 rounded-xl flex justify-between items-center">
+                  <div>
+                    <span className="text-[10px] text-primary-600 font-bold uppercase tracking-wider">Invoice Grand Total Preview</span>
+                    <p className="text-xl font-black text-primary-750 mt-0.5">
+                      {(() => {
+                        const medCost = prescribedMeds.reduce((sum, m) => sum + m.subtotal, 0);
+                        const base = parseFloat(consultationFee || 0) + medCost + parseFloat(otherCharges || 0);
+                        const afterDiscount = base - parseFloat(discount || 0);
+                        const total = afterDiscount + parseFloat(gst || 0);
+                        return formatCurrency(total);
+                      })()}
+                    </p>
+                  </div>
+                  <div className="text-xs text-gray-500 font-semibold text-right">
+                    <p>Consultation: {formatCurrency(parseFloat(consultationFee || 0))}</p>
+                    <p>Medicines: {formatCurrency(prescribedMeds.reduce((sum, m) => sum + m.subtotal, 0))}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="pt-4 flex gap-3 border-t border-gray-150 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setConsultingAppt(null)}
+                  className="btn-outline btn-md py-2.5 rounded-xl text-gray-500 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary btn-md py-2.5 rounded-xl text-white cursor-pointer"
+                >
+                  Save Consultation & Generate Invoice
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

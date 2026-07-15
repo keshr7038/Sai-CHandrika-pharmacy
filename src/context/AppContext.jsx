@@ -1021,40 +1021,31 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const updateAppointmentStatus = async (apptId, status, rescheduleDate = null, rescheduleSlot = null) => {
-    const updatePayload = { status };
-    if (rescheduleDate && rescheduleSlot) {
-      updatePayload.appointment_date = rescheduleDate;
-      updatePayload.time_slot = rescheduleSlot;
-    }
-    
+  const updateAppointment = async (apptId, updateData) => {
     try {
-      const { error } = await supabase.from('appointments').update(updatePayload).eq('id', apptId);
+      const { error } = await supabase.from('appointments').update(updateData).eq('id', apptId);
       if (error) throw error;
       
       setAppointments(prev => prev.map(a => 
-        a.id === apptId 
-          ? { 
-              ...a, 
-              status, 
-              ...(rescheduleDate && rescheduleSlot ? { appointment_date: rescheduleDate, time_slot: rescheduleSlot } : {})
-            } 
-          : a
+        a.id === apptId ? { ...a, ...updateData } : a
       ));
       return { success: true };
     } catch (err) {
       console.warn("Failed to update appointment in Supabase (updating locally):", err.message);
       setAppointments(prev => prev.map(a => 
-        a.id === apptId 
-          ? { 
-              ...a, 
-              status, 
-              ...(rescheduleDate && rescheduleSlot ? { appointment_date: rescheduleDate, time_slot: rescheduleSlot } : {})
-            } 
-          : a
+        a.id === apptId ? { ...a, ...updateData } : a
       ));
       return { success: true };
     }
+  };
+
+  const updateAppointmentStatus = async (apptId, status, rescheduleDate = null, rescheduleSlot = null) => {
+    const payload = { status };
+    if (rescheduleDate && rescheduleSlot) {
+      payload.appointment_date = rescheduleDate;
+      payload.time_slot = rescheduleSlot;
+    }
+    return updateAppointment(apptId, payload);
   };
 
   return (
@@ -1070,7 +1061,7 @@ export const AppProvider = ({ children }) => {
       addPurchase, sendVendorDueReminder,
       sendSms, addNotification, markNotificationRead, clearNotifications,
       sendAiMessage, updateTwilioConfig, getSheetDisplay, loadAllData,
-      bookAppointment, updateAppointmentStatus,
+      bookAppointment, updateAppointmentStatus, updateAppointment,
     }}>
       {children}
     </AppContext.Provider>
