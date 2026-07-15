@@ -5,7 +5,7 @@ import {
   Activity, LayoutDashboard, Pill, ShoppingCart, Package, Truck,
   FileText, Bot, UserCircle, Bell, Sun, Moon, Menu, X, LogOut,
   ChevronDown, Check, AlertTriangle, Info, CheckCircle,
-  Home, ShoppingBag, ClipboardList, Sparkles, Users
+  Home, ShoppingBag, ClipboardList, Sparkles, Users, CalendarDays, Stethoscope
 } from 'lucide-react';
 
 export default function Layout({ children, currentTab, setCurrentTab }) {
@@ -39,6 +39,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
     { id: 'purchases', label: 'Purchases', icon: Package },
     { id: 'vendors', label: 'Vendors', icon: Truck },
     { id: 'transactions', label: 'Orders', icon: FileText },
+    { id: 'appointments', label: 'Appointments', icon: CalendarDays },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'ai-assistant', label: 'AI Assistant', icon: Bot, badge: 'New', badgeColor: 'bg-accent-600' },
     { id: 'profile', label: 'Profile', icon: UserCircle },
@@ -49,6 +50,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
     { id: 'dashboard', label: 'Home', icon: Home },
     { id: 'shop', label: 'Shop Medicines', icon: ShoppingBag },
     { id: 'orders', label: 'My Orders', icon: ClipboardList },
+    { id: 'consultation', label: 'Doctor Consultation', icon: Stethoscope },
     { id: 'ai-assistant', label: 'AI Assistant', icon: Bot, badge: 'New', badgeColor: 'bg-accent-600' },
     { id: 'profile', label: 'My Profile', icon: UserCircle },
   ];

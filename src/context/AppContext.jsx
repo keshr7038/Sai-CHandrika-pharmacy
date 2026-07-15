@@ -96,6 +96,17 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('saichandrika_cart', JSON.stringify(cart));
   }, [cart]);
+  const [appointments, setAppointments] = useState(() => {
+    try {
+      const saved = localStorage.getItem('saichandrika_appointments');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  useEffect(() => {
+    localStorage.setItem('saichandrika_appointments', JSON.stringify(appointments));
+  }, [appointments]);
   const [smsLogs, setSmsLogs] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [twilioConfig, setTwilioConfigState] = useState(getTwilioConfig);
@@ -217,6 +228,19 @@ export const AppProvider = ({ children }) => {
         } else {
           console.warn("Could not load payments:", paymentsErr.message);
         }
+      }
+
+      // Load Appointments (visible to both roles)
+      try {
+        if (user.role === 'owner') {
+          const { data: apptData, error: apptErr } = await supabase.from('appointments').select('*').order('appointment_date', { ascending: true });
+          if (!apptErr) setAppointments(apptData || []);
+        } else {
+          const { data: apptData, error: apptErr } = await supabase.from('appointments').select('*').eq('customer_email', user.email).order('appointment_date', { ascending: true });
+          if (!apptErr) setAppointments(apptData || []);
+        }
+      } catch (apptLoadErr) {
+        console.warn("Failed to load appointments from Supabase:", apptLoadErr.message);
       }
 
     } catch (err) {
@@ -983,11 +1007,61 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const bookAppointment = async (apptData) => {
+    try {
+      const { data, error } = await supabase.from('appointments').insert(apptData).select();
+      if (error) throw error;
+      
+      setAppointments(prev => [...prev, apptData]);
+      return { success: true, data: apptData };
+    } catch (err) {
+      console.warn("Failed to book appointment in Supabase (saving locally):", err.message);
+      setAppointments(prev => [...prev, apptData]);
+      return { success: true, data: apptData };
+    }
+  };
+
+  const updateAppointmentStatus = async (apptId, status, rescheduleDate = null, rescheduleSlot = null) => {
+    const updatePayload = { status };
+    if (rescheduleDate && rescheduleSlot) {
+      updatePayload.appointment_date = rescheduleDate;
+      updatePayload.time_slot = rescheduleSlot;
+    }
+    
+    try {
+      const { error } = await supabase.from('appointments').update(updatePayload).eq('id', apptId);
+      if (error) throw error;
+      
+      setAppointments(prev => prev.map(a => 
+        a.id === apptId 
+          ? { 
+              ...a, 
+              status, 
+              ...(rescheduleDate && rescheduleSlot ? { appointment_date: rescheduleDate, time_slot: rescheduleSlot } : {})
+            } 
+          : a
+      ));
+      return { success: true };
+    } catch (err) {
+      console.warn("Failed to update appointment in Supabase (updating locally):", err.message);
+      setAppointments(prev => prev.map(a => 
+        a.id === apptId 
+          ? { 
+              ...a, 
+              status, 
+              ...(rescheduleDate && rescheduleSlot ? { appointment_date: rescheduleDate, time_slot: rescheduleSlot } : {})
+            } 
+          : a
+      ));
+      return { success: true };
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       user, setUser, medicines, vendors, sales, purchases, cart, smsLogs,
       notifications, darkMode, aiMessages, twilioConfig, loading, dbError,
-      toggleDarkMode, logout, customers, payments,
+      toggleDarkMode, logout, customers, payments, appointments,
       checkOwnerEmail, sendOwnerOtp, verifyOwnerOtp, loginCustomerDirectly,
       addMedicine, updateMedicine, deleteMedicine,
       addVendor, updateVendor,
@@ -996,6 +1070,7 @@ export const AppProvider = ({ children }) => {
       addPurchase, sendVendorDueReminder,
       sendSms, addNotification, markNotificationRead, clearNotifications,
       sendAiMessage, updateTwilioConfig, getSheetDisplay, loadAllData,
+      bookAppointment, updateAppointmentStatus,
     }}>
       {children}
     </AppContext.Provider>

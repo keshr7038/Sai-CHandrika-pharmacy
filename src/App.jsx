@@ -15,6 +15,8 @@ import Transactions from './components/Transactions';
 import Profile from './components/Profile';
 import AIChat from './components/AIChat';
 import Customers from './components/Customers';
+import DoctorConsultation from './components/DoctorConsultation';
+import AppointmentsManager from './components/AppointmentsManager';
 import './App.css';
 
 // ===== PROTECTED ROUTE WRAPPERS =====
@@ -58,6 +60,7 @@ function OwnerDashboardWrapper() {
       case 'purchases': return <Purchases />;
       case 'vendors': return <Vendors />;
       case 'transactions': return <Transactions />;
+      case 'appointments': return <AppointmentsManager />;
       case 'customers': return <Customers />;
       case 'ai-assistant': return <AIChat />;
       case 'profile': return <Profile />;
@@ -80,6 +83,7 @@ function CustomerDashboardWrapper() {
       case 'dashboard': return <CustomerDashboard setCurrentTab={setCurrentTab} />;
       case 'shop': return <Sales />;
       case 'orders': return <Transactions />;
+      case 'consultation': return <DoctorConsultation />;
       case 'ai-assistant': return <AIChat />;
       case 'profile': return <Profile />;
       default: return <CustomerDashboard setCurrentTab={setCurrentTab} />;
