@@ -254,6 +254,24 @@ export const AppProvider = ({ children }) => {
     }
   }, [user]);
 
+  // Load data when user logs in
+  useEffect(() => {
+    if (user) loadAllData();
+  }, [user, loadAllData]);
+
+  // =============================================
+  // NOTIFICATION SYSTEM
+  // =============================================
+  const addNotification = useCallback((message, type = 'info') => {
+    setNotifications(prev => [{
+      id: `NOTIF-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+      message, type, timestamp: new Date().toISOString(), read: false
+    }, ...prev.slice(0, 19)]);
+  }, []);
+
+  const markNotificationRead = (id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  const clearNotifications = () => setNotifications([]);
+
   // Supabase Realtime Subscription Effect
   useEffect(() => {
     if (!user) return;
@@ -310,24 +328,6 @@ export const AppProvider = ({ children }) => {
     };
   }, [user, addNotification]);
 
-
-  // Load data when user logs in
-  useEffect(() => {
-    if (user) loadAllData();
-  }, [user, loadAllData]);
-
-  // =============================================
-  // NOTIFICATION SYSTEM
-  // =============================================
-  const addNotification = useCallback((message, type = 'info') => {
-    setNotifications(prev => [{
-      id: `NOTIF-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
-      message, type, timestamp: new Date().toISOString(), read: false
-    }, ...prev.slice(0, 19)]);
-  }, []);
-
-  const markNotificationRead = (id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-  const clearNotifications = () => setNotifications([]);
 
   // =============================================
   // SMS — Twilio + Supabase logging
