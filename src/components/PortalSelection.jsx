@@ -17,6 +17,10 @@ export default function UnifiedLogin() {
         navigate('/owner-dashboard');
       } else if (user.role === 'customer') {
         navigate('/customer-dashboard');
+      } else if (user.role === 'doctor') {
+        navigate('/doctor-dashboard');
+      } else if (user.role === 'delivery_executive') {
+        navigate('/delivery-dashboard');
       }
     }
   }, [user, navigate]);

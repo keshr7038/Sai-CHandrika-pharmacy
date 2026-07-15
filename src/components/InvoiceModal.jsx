@@ -36,7 +36,7 @@ const loadRazorpayScript = () => {
 };
 
 export default function InvoiceModal({ invoice, onClose }) {
-  const { user, markPaymentSuccess } = useContext(AppContext);
+  const { user, markPaymentSuccess, deliveryOrders, deliveryStaff, deliveryAddresses } = useContext(AppContext);
   const [paymentStep, setPaymentStep] = useState(
     invoice.paymentStatus === 'Success' ? PAYMENT_STEPS.SUCCESS : PAYMENT_STEPS.REVIEW
   );
@@ -299,6 +299,59 @@ Thank you for choosing Sai Chandrika Pharmacy!
               </span>
             </div>
           </div>
+
+          {/* Home Delivery Tracking Panel */}
+          {(() => {
+            const delOrder = deliveryOrders?.find(d => d.id === invoice.id);
+            if (!delOrder) return null;
+            const address = deliveryAddresses?.find(a => a.id === delOrder.delivery_address_id);
+            const exec = deliveryStaff?.find(s => s.id === delOrder.delivery_executive_id);
+            return (
+              <div className="bg-primary-50/20 border border-primary-100 rounded-2xl p-4 mb-5 space-y-3">
+                <div className="flex justify-between items-center">
+                  <h4 className="text-xs font-bold text-primary-700 uppercase tracking-wider">Home Delivery Tracking</h4>
+                  {delOrder.status === 'Out for Delivery' && delOrder.otp && (
+                    <span className="badge badge-warning text-[10px]">OTP: {delOrder.otp}</span>
+                  )}
+                </div>
+                <div className="text-xs space-y-1 text-gray-600">
+                  <p><span className="font-semibold text-gray-700">Rider:</span> {exec ? `${exec.name} (${exec.phone})` : 'Awaiting assignment'}</p>
+                  <p><span className="font-semibold text-gray-700">Address:</span> {address ? `${address.address_line}, ${address.city} - ${address.pincode} (Landmark: ${address.landmark || 'None'})` : 'Store Pickup'}</p>
+                </div>
+                
+                {/* Horizontal status steps */}
+                <div className="pt-2">
+                  <div className="relative flex justify-between items-center w-full">
+                    <div className="absolute left-0 right-0 h-0.5 bg-gray-200 top-2.5 z-0" />
+                    {['Placed', 'Accepted', 'Out for Delivery', 'Delivered'].map((stepName, sIdx) => {
+                      const statusMap = {
+                        'Placed': ['Order Placed'],
+                        'Accepted': ['Accepted', 'Preparing', 'Packed'],
+                        'Out for Delivery': ['Out for Delivery'],
+                        'Delivered': ['Delivered']
+                      };
+                      
+                      // Check if current status is past this step
+                      const stepList = Object.keys(statusMap);
+                      const currentStepName = Object.keys(statusMap).find(k => statusMap[k].includes(delOrder.status)) || 'Placed';
+                      const isDone = stepList.indexOf(stepName) <= stepList.indexOf(currentStepName);
+                      
+                      return (
+                        <div key={sIdx} className="flex flex-col items-center relative z-10">
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center border text-[9px] font-bold ${
+                            isDone ? 'bg-primary-600 border-primary-600 text-white' : 'bg-white border-gray-300 text-gray-400'
+                          }`}>
+                            {sIdx + 1}
+                          </div>
+                          <span className="text-[8px] font-bold text-gray-500 mt-1">{stepName}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Footer */}
           <div className="text-center mb-4">

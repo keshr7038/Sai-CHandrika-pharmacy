@@ -80,11 +80,44 @@ export function getSheetDisplay(totalUnits, tabletsPerSheet, packaging = 'Strip'
   return { sheets, loose, display, total: totalUnits };
 }
 
+// ===== Safe Database Query Helper =====
+const fetchTableSafe = async (tableName, select = '*', filter = null) => {
+  try {
+    let query = supabase.from(tableName).select(select);
+    if (filter) {
+      query = filter(query);
+    }
+    const { data, error } = await query;
+    if (error) {
+      console.warn(`[SafeFetch] Error loading ${tableName}:`, error.message);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn(`[SafeFetch] Failed to fetch ${tableName}:`, err);
+    return [];
+  }
+};
+
 export const AppProvider = ({ children }) => {
   const [medicines, setMedicines] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [sales, setSales] = useState([]);
   const [purchases, setPurchases] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [deliveryStaff, setDeliveryStaff] = useState([]);
+  const [deliveryOrders, setDeliveryOrders] = useState([]);
+  const [deliverySettings, setDeliverySettingsState] = useState({
+    radius_km: 10,
+    charge: 40,
+    min_order_amount: 150,
+    free_delivery_above: 500,
+    serviceable_pincodes: '508116,500001,500002,500003,500012'
+  });
+  const [notificationHistory, setNotificationHistory] = useState([]);
+  const [deliveryAddresses, setDeliveryAddresses] = useState([]);
   const [cart, setCart] = useState(() => {
     try {
       const saved = localStorage.getItem('saichandrika_cart');
@@ -144,10 +177,20 @@ export const AppProvider = ({ children }) => {
     setLoading(true);
     setDbError(null);
     try {
-      // Medicines (visible to both roles)
+      // Medicines (visible to all)
       const { data: medsData, error: medsErr } = await supabase.from('medicines').select('*').order('id');
       if (medsErr) throw medsErr;
       setMedicines((medsData || []).map(mapMedicineFromDB));
+
+      // 1. Fetch Doctors (visible to all)
+      const docsData = await fetchTableSafe('doctors', '*', q => q.order('name'));
+      setDoctors(docsData);
+
+      // 2. Fetch Delivery Settings (visible to all)
+      const settingsData = await fetchTableSafe('delivery_settings');
+      if (settingsData && settingsData.length > 0) {
+        setDeliverySettingsState(settingsData[0]);
+      }
 
       if (user.role === 'owner') {
         // Vendors
@@ -192,9 +235,42 @@ export const AppProvider = ({ children }) => {
         const { data: paymentsData, error: paymentsErr } = await supabase.from('payments').select('*').order('created_at', { ascending: false });
         if (!paymentsErr) {
           setPayments(paymentsData || []);
-        } else {
-          console.warn("Could not load payments (payments table might not exist yet):", paymentsErr.message);
         }
+
+        // Fetch Clinic/Delivery for Admin
+        const apptsData = await fetchTableSafe('appointments', '*', q => q.order('created_at', { ascending: false }));
+        setAppointments(apptsData);
+
+        const rxData = await fetchTableSafe('prescriptions', '*', q => q.order('created_at', { ascending: false }));
+        const rxWithItems = [];
+        for (const rx of rxData) {
+          const items = await fetchTableSafe('prescription_items', '*', q => q.eq('prescription_id', rx.id));
+          rxWithItems.push({ ...rx, items });
+        }
+        setPrescriptions(rxWithItems);
+
+        const staffData = await fetchTableSafe('delivery_staff', '*', q => q.order('name'));
+        setDeliveryStaff(staffData);
+
+        const delOrders = await fetchTableSafe('delivery_orders', '*', q => q.order('created_at', { ascending: false }));
+        setDeliveryOrders(delOrders);
+
+      } else if (user.role === 'doctor') {
+        const apptsData = await fetchTableSafe('appointments', '*', q => q.eq('doctor_id', user.id).order('created_at', { ascending: false }));
+        setAppointments(apptsData);
+
+        const rxData = await fetchTableSafe('prescriptions', '*', q => q.eq('doctor_id', user.id).order('created_at', { ascending: false }));
+        const rxWithItems = [];
+        for (const rx of rxData) {
+          const items = await fetchTableSafe('prescription_items', '*', q => q.eq('prescription_id', rx.id));
+          rxWithItems.push({ ...rx, items });
+        }
+        setPrescriptions(rxWithItems);
+
+      } else if (user.role === 'delivery_executive') {
+        const delOrders = await fetchTableSafe('delivery_orders', '*', q => q.eq('delivery_executive_id', user.id).order('created_at', { ascending: false }));
+        setDeliveryOrders(delOrders);
+
       } else if (user.role === 'customer') {
         // Customer can only view their own transactions / orders
         const customerPhone = user.phone ? user.phone.replace(/[\s\-()]/g, '') : 'None';
@@ -214,9 +290,28 @@ export const AppProvider = ({ children }) => {
         const { data: paymentsData, error: paymentsErr } = await supabase.from('payments').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
         if (!paymentsErr) {
           setPayments(paymentsData || []);
-        } else {
-          console.warn("Could not load payments:", paymentsErr.message);
         }
+
+        // Fetch Customer Clinic/Delivery
+        const apptsData = await fetchTableSafe('appointments', '*', q => q.eq('customer_id', user.id).order('created_at', { ascending: false }));
+        setAppointments(apptsData);
+
+        const rxData = await fetchTableSafe('prescriptions', '*', q => q.eq('customer_id', user.id).order('created_at', { ascending: false }));
+        const rxWithItems = [];
+        for (const rx of rxData) {
+          const items = await fetchTableSafe('prescription_items', '*', q => q.eq('prescription_id', rx.id));
+          rxWithItems.push({ ...rx, items });
+        }
+        setPrescriptions(rxWithItems);
+
+        const addrData = await fetchTableSafe('delivery_addresses', '*', q => q.eq('customer_id', user.id).order('is_default', { ascending: false }));
+        setDeliveryAddresses(addrData);
+
+        const delOrders = await fetchTableSafe('delivery_orders', '*', q => q.eq('customer_id', user.id).order('created_at', { ascending: false }));
+        setDeliveryOrders(delOrders);
+
+        const notifData = await fetchTableSafe('notification_history', '*', q => q.eq('customer_id', user.id).order('created_at', { ascending: false }));
+        setNotificationHistory(notifData);
       }
 
     } catch (err) {
@@ -371,25 +466,58 @@ export const AppProvider = ({ children }) => {
             localStorage.setItem('saichandrika_user', JSON.stringify(userData));
             addNotification("Logged in successfully as Owner!", "success");
           } else {
-            const { data: customerProfile } = await supabase
-              .from('customers')
-              .select('*')
-              .eq('email', email)
-              .maybeSingle();
-            
-            if (customerProfile) {
+            // Check if Doctor
+            const { data: doctorProfile } = await supabase.from('doctors').select('*').eq('email', email).maybeSingle();
+            if (doctorProfile) {
               const userData = {
-                id: customerProfile.id,
-                name: customerProfile.name,
-                email: customerProfile.email,
-                phone: customerProfile.phone || '',
-                role: 'customer',
-                createdAt: customerProfile.created_at,
-                lastLogin: customerProfile.last_login
+                id: doctorProfile.id,
+                name: doctorProfile.name,
+                email: doctorProfile.email,
+                phone: doctorProfile.phone || '',
+                role: 'doctor',
+                createdAt: session.user.created_at
               };
               setUser(userData);
               localStorage.setItem('saichandrika_user', JSON.stringify(userData));
-              addNotification("Logged in successfully as Customer!", "success");
+              addNotification(`Logged in successfully as Dr. ${doctorProfile.name}!`, "success");
+            } else {
+              // Check if Delivery Executive
+              const { data: staffProfile } = await supabase.from('delivery_staff').select('*').eq('email', email).maybeSingle();
+              if (staffProfile) {
+                const userData = {
+                  id: staffProfile.id,
+                  name: staffProfile.name,
+                  email: staffProfile.email,
+                  phone: staffProfile.phone || '',
+                  role: 'delivery_executive',
+                  createdAt: session.user.created_at
+                };
+                setUser(userData);
+                localStorage.setItem('saichandrika_user', JSON.stringify(userData));
+                addNotification(`Logged in successfully as Delivery Executive ${staffProfile.name}!`, "success");
+              } else {
+                // Default to Customer
+                const { data: customerProfile } = await supabase
+                  .from('customers')
+                  .select('*')
+                  .eq('email', email)
+                  .maybeSingle();
+                
+                if (customerProfile) {
+                  const userData = {
+                    id: customerProfile.id,
+                    name: customerProfile.name,
+                    email: customerProfile.email,
+                    phone: customerProfile.phone || '',
+                    role: 'customer',
+                    createdAt: customerProfile.created_at,
+                    lastLogin: customerProfile.last_login
+                  };
+                  setUser(userData);
+                  localStorage.setItem('saichandrika_user', JSON.stringify(userData));
+                  addNotification("Logged in successfully as Customer!", "success");
+                }
+              }
             }
           }
         }
@@ -483,12 +611,21 @@ export const AppProvider = ({ children }) => {
       const lastLogin = new Date().toISOString();
       await supabase.from('customers').update({ last_login: lastLogin }).eq('id', customerProfile.id);
 
+      // Check if this is a doctor email
+      const { data: doctorProfile } = await supabase.from('doctors').select('*').eq('email', normEmail).maybeSingle();
+      // Check if this is a delivery executive email
+      const { data: staffProfile } = await supabase.from('delivery_staff').select('*').eq('email', normEmail).maybeSingle();
+
+      const resolvedRole = doctorProfile ? 'doctor' : (staffProfile ? 'delivery_executive' : 'customer');
+      const resolvedName = doctorProfile ? doctorProfile.name : (staffProfile ? staffProfile.name : customerProfile.name);
+      const resolvedId = doctorProfile ? doctorProfile.id : (staffProfile ? staffProfile.id : customerProfile.id);
+
       const userData = {
-        id: customerProfile.id,
-        name: customerProfile.name,
+        id: resolvedId,
+        name: resolvedName,
         email: customerProfile.email,
         phone: customerProfile.phone || '',
-        role: 'customer',
+        role: resolvedRole,
         createdAt: customerProfile.created_at,
         lastLogin: lastLogin
       };
@@ -638,6 +775,356 @@ export const AppProvider = ({ children }) => {
   };
 
   // =============================================
+  // CLINIC & DOCTOR APPOINTMENTS
+  // =============================================
+  const bookAppointment = async (doctorVal, dateVal, slotVal, patientInfo) => {
+    try {
+      const aptId = `APT-${Math.floor(10000 + Math.random() * 90000)}`;
+      const { data, error } = await supabase
+        .from('appointments')
+        .insert({
+          id: aptId,
+          doctor_id: doctorVal.id,
+          customer_id: user?.id || null,
+          patient_name: patientInfo.name,
+          patient_phone: patientInfo.phone,
+          patient_age: parseInt(patientInfo.age),
+          patient_gender: patientInfo.gender,
+          reason: patientInfo.reason || '',
+          appointment_date: dateVal,
+          appointment_slot: slotVal,
+          status: 'Pending'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setAppointments(prev => [data, ...prev]);
+
+      await addNotification(
+        `Appointment Booked`,
+        `Your appointment with Dr. ${doctorVal.name} is booked on ${dateVal} at ${slotVal}. Pending review.`,
+        'info',
+        user?.id
+      );
+
+      return { success: true, appointment: data };
+    } catch (err) {
+      console.error('Failed to book appointment:', err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const updateAppointmentStatus = async (appointmentId, newStatus) => {
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .update({ status: newStatus })
+        .eq('id', appointmentId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setAppointments(prev => prev.map(a => a.id === appointmentId ? data : a));
+
+      if (data.customer_id) {
+        let msg = `Your appointment status was updated to ${newStatus}.`;
+        if (newStatus === 'Approved') {
+          msg = `Your appointment is Approved! See you on ${data.appointment_date} at ${data.appointment_slot}.`;
+        } else if (newStatus === 'Completed') {
+          msg = `Your consultation is complete. Get well soon!`;
+        }
+        await addNotification(`Appointment Update`, msg, newStatus === 'Approved' ? 'success' : 'info', data.customer_id);
+      }
+
+      return { success: true, appointment: data };
+    } catch (err) {
+      console.error('Failed to update appointment:', err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  // =============================================
+  // DIGITAL PRESCRIPTIONS
+  // =============================================
+  const createPrescription = async (prescriptionData, itemsList) => {
+    try {
+      const rxId = `RX-${Math.floor(20000 + Math.random() * 80000)}`;
+      const { data: rxData, error: rxErr } = await supabase
+        .from('prescriptions')
+        .insert({
+          id: rxId,
+          appointment_id: prescriptionData.appointmentId || null,
+          doctor_id: prescriptionData.doctorId || null,
+          customer_id: prescriptionData.customerId || null,
+          patient_name: prescriptionData.patientName,
+          patient_age: parseInt(prescriptionData.patientAge),
+          patient_gender: prescriptionData.patientGender,
+          diagnosis: prescriptionData.diagnosis || '',
+          symptoms: prescriptionData.symptoms || '',
+          advice: prescriptionData.advice || '',
+          follow_up_date: prescriptionData.followUpDate || null,
+          doctor_signature: prescriptionData.doctorSignature || 'Digital Signature'
+        })
+        .select()
+        .single();
+
+      if (rxErr) throw rxErr;
+
+      const itemsToInsert = itemsList.map(item => ({
+        prescription_id: rxId,
+        medicine_id: item.medicineId || null,
+        name: item.name,
+        quantity: parseInt(item.quantity),
+        dosage: item.dosage,
+        timing: item.timing,
+        duration: parseInt(item.duration)
+      }));
+
+      const { data: insertedItems, error: itemsErr } = await supabase
+        .from('prescription_items')
+        .insert(itemsToInsert)
+        .select();
+
+      if (itemsErr) throw itemsErr;
+
+      const fullRx = { ...rxData, items: insertedItems };
+      setPrescriptions(prev => [fullRx, ...prev]);
+
+      if (prescriptionData.customerId) {
+        await addNotification(
+          `New Prescription Ready`,
+          `Dr. ${prescriptionData.doctorName || 'Consultant'} has uploaded a digital prescription for you.`,
+          'success',
+          prescriptionData.customerId
+        );
+      }
+
+      return { success: true, prescription: fullRx };
+    } catch (err) {
+      console.error('Failed to create prescription:', err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  // =============================================
+  // SAVED ADDRESSES BOOK
+  // =============================================
+  const saveAddress = async (addressData) => {
+    try {
+      if (addressData.is_default) {
+        await supabase
+          .from('delivery_addresses')
+          .update({ is_default: false })
+          .eq('customer_id', user.id);
+      }
+
+      const { data, error } = await supabase
+        .from('delivery_addresses')
+        .upsert({
+          ...addressData,
+          customer_id: user.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setDeliveryAddresses(prev => {
+        const exists = prev.some(a => a.id === data.id);
+        if (exists) {
+          return prev.map(a => a.id === data.id ? data : a);
+        }
+        return [data, ...prev];
+      });
+
+      return { success: true, address: data };
+    } catch (err) {
+      console.error('Failed to save address:', err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const deleteAddress = async (addressId) => {
+    try {
+      const { error } = await supabase
+        .from('delivery_addresses')
+        .delete()
+        .eq('id', addressId);
+
+      if (error) throw error;
+
+      setDeliveryAddresses(prev => prev.filter(a => a.id !== addressId));
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to delete address:', err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const setDefaultAddress = async (addressId) => {
+    try {
+      await supabase
+        .from('delivery_addresses')
+        .update({ is_default: false })
+        .eq('customer_id', user.id);
+
+      const { data, error } = await supabase
+        .from('delivery_addresses')
+        .update({ is_default: true })
+        .eq('id', addressId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setDeliveryAddresses(prev => prev.map(a => a.id === addressId ? data : { ...a, is_default: false }));
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to set default address:', err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  // =============================================
+  // DELIVERY OPERATIONS & TRACKING
+  // =============================================
+  const updateDeliverySettings = async (settings) => {
+    try {
+      const { data, error } = await supabase
+        .from('delivery_settings')
+        .upsert({ id: 1, ...settings })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setDeliverySettingsState(data);
+      addNotification("Delivery settings updated successfully", "success");
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to update delivery settings:', err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const assignDeliveryExecutive = async (deliveryOrderId, executiveId) => {
+    try {
+      const { data, error } = await supabase
+        .from('delivery_orders')
+        .update({ delivery_executive_id: executiveId, status: 'Accepted' })
+        .eq('id', deliveryOrderId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setDeliveryOrders(prev => prev.map(o => o.id === deliveryOrderId ? data : o));
+
+      await supabase.from('delivery_status_history').insert({
+        delivery_order_id: deliveryOrderId,
+        status: 'Accepted',
+        notes: `Assigned delivery partner.`
+      });
+
+      if (data.customer_id) {
+        await sendNotification(`Order Accepted`, `Your order ${deliveryOrderId} has been accepted and assigned a driver.`, 'info', data.customer_id);
+      }
+
+
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to assign driver:', err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const updateDeliveryStatus = async (deliveryOrderId, newStatus, notes = '') => {
+    try {
+      const updateData = { status: newStatus };
+      const { data, error } = await supabase
+        .from('delivery_orders')
+        .update(updateData)
+        .eq('id', deliveryOrderId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setDeliveryOrders(prev => prev.map(o => o.id === deliveryOrderId ? data : o));
+
+      await supabase.from('delivery_status_history').insert({
+        delivery_order_id: deliveryOrderId,
+        status: newStatus,
+        notes: notes || `Order status updated to ${newStatus}`
+      });
+
+      if (data.customer_id) {
+        await sendNotification(
+          `Delivery Update`,
+          `Your order ${deliveryOrderId} is now: **${newStatus}**.`,
+          newStatus === 'Delivered' ? 'success' : 'info',
+          data.customer_id
+        );
+      }
+
+      return { success: true, order: data };
+    } catch (err) {
+      console.error('Failed to update status:', err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const verifyDeliveryOtp = async (deliveryOrderId, inputOtp) => {
+    try {
+      const { data: order, error } = await supabase
+        .from('delivery_orders')
+        .select('*')
+        .eq('id', deliveryOrderId)
+        .single();
+
+      if (error) throw error;
+
+      if (order.otp === inputOtp) {
+        const res = await updateDeliveryStatus(deliveryOrderId, 'Delivered', 'Verified with OTP.');
+        return { success: true, order: res.order };
+      }
+
+      return { success: false, error: 'Invalid 4-digit OTP code.' };
+    } catch (err) {
+      console.error('Failed to verify OTP:', err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  const sendNotification = async (title, message, type = 'info', customerId = null) => {
+    try {
+      const targetId = customerId || user?.id;
+      if (!targetId) return;
+
+      const { data, error } = await supabase
+        .from('notification_history')
+        .insert({
+          customer_id: targetId,
+          title,
+          message,
+          type
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setNotificationHistory(prev => [data, ...prev]);
+    } catch (err) {
+      console.warn('Failed to insert notification in DB:', err.message);
+    }
+  };
+
+
+  // =============================================
   // CART OPERATIONS (local only)
   // =============================================
   const addToCart = (medicine) => {
@@ -673,14 +1160,15 @@ export const AppProvider = ({ children }) => {
   // =============================================
   // GENERATE BILL — Supabase insert sales + sale_items + update stock
   // =============================================
-  const generateBill = async (paymentMethod = 'Cash', discountPercent = 0, taxPercent = 8, customerName = '', customerPhone = '') => {
+  const generateBill = async (paymentMethod = 'Cash', discountPercent = 0, taxPercent = 8, customerName = '', customerPhone = '', deliveryDetails = null) => {
     if (cart.length === 0) return null;
 
     const subtotal = cart.reduce((sum, item) => sum + (item.sellingPrice * item.quantity), 0);
     const discountVal = (subtotal * parseFloat(discountPercent)) / 100;
     const taxableAmount = subtotal - discountVal;
     const taxVal = (taxableAmount * parseFloat(taxPercent)) / 100;
-    const totalVal = parseFloat((taxableAmount + taxVal).toFixed(2));
+    const deliveryCost = deliveryDetails ? parseFloat(deliveryDetails.deliveryCharge) : 0;
+    const totalVal = parseFloat((taxableAmount + taxVal + deliveryCost).toFixed(2));
 
     const newTxnId = `TXN-${Math.floor(100000 + Math.random() * 900000)}`;
     const now = new Date().toISOString();
@@ -724,6 +1212,47 @@ export const AppProvider = ({ children }) => {
     }));
     const { error: itemsErr } = await supabase.from('sale_items').insert(saleItems);
     if (itemsErr) console.error('Failed to insert sale items:', itemsErr);
+
+    // 3.5 Handle Home Delivery details insertion
+    if (deliveryDetails) {
+      const otp = String(Math.floor(1000 + Math.random() * 9000));
+      const newDelOrder = {
+        id: newTxnId,
+        customer_id: user?.id || null,
+        delivery_address_id: deliveryDetails.deliveryAddressId,
+        delivery_charge: deliveryCost,
+        delivery_executive_id: null,
+        otp,
+        status: 'Order Placed',
+        delivery_notes: deliveryDetails.notes || '',
+        created_at: now
+      };
+
+      setDeliveryOrders(prev => [newDelOrder, ...prev]);
+
+      await supabase.from('delivery_orders').insert({
+        id: newTxnId,
+        customer_id: user?.id || null,
+        delivery_address_id: deliveryDetails.deliveryAddressId,
+        delivery_charge: deliveryCost,
+        otp,
+        status: 'Order Placed',
+        delivery_notes: deliveryDetails.notes || ''
+      });
+
+      await supabase.from('delivery_status_history').insert({
+        delivery_order_id: newTxnId,
+        status: 'Order Placed',
+        notes: 'Order placed via Customer Checkout.'
+      });
+
+      await sendNotification(
+        `Order Placed`,
+        `Your delivery order has been placed and tracking is active. Share OTP ${otp} at delivery.`,
+        'success',
+        user?.id
+      );
+    }
 
     // 4. Send low-stock SMS alerts if applicable
     for (const cartItem of cart) {
@@ -996,6 +1525,13 @@ export const AppProvider = ({ children }) => {
       addPurchase, sendVendorDueReminder,
       sendSms, addNotification, markNotificationRead, clearNotifications,
       sendAiMessage, updateTwilioConfig, getSheetDisplay, loadAllData,
+      doctors, setDoctors, appointments, setAppointments, prescriptions, setPrescriptions,
+      deliveryStaff, setDeliveryStaff, deliveryOrders, setDeliveryOrders,
+      deliverySettings, setDeliverySettingsState, updateDeliverySettings,
+      notificationHistory, setNotificationHistory, deliveryAddresses, setDeliveryAddresses,
+      bookAppointment, updateAppointmentStatus, createPrescription,
+      saveAddress, deleteAddress, setDefaultAddress,
+      assignDeliveryExecutive, updateDeliveryStatus, verifyDeliveryOtp, sendNotification
     }}>
       {children}
     </AppContext.Provider>
