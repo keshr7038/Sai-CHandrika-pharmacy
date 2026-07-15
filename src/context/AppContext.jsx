@@ -92,14 +92,21 @@ export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [customers, setCustomers] = useState([]);
   const [payments, setPayments] = useState([]);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('saichandrika_dark_mode') === 'true');
   const [loading, setLoading] = useState(true);
   const [dbError, setDbError] = useState(null);
 
   const toggleDarkMode = () => setDarkMode(prev => !prev);
   useEffect(() => {
-    if (darkMode) document.body.classList.add('dark');
-    else document.body.classList.remove('dark');
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      document.body.classList.add('dark');
+      localStorage.setItem('saichandrika_dark_mode', 'true');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.body.classList.remove('dark');
+      localStorage.setItem('saichandrika_dark_mode', 'false');
+    }
   }, [darkMode]);
 
   // Restore session on mount
