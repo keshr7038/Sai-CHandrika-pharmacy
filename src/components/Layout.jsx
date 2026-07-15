@@ -49,7 +49,6 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
     { id: 'dashboard', label: 'Home', icon: Home },
     { id: 'shop', label: 'Shop Medicines', icon: ShoppingBag },
     { id: 'orders', label: 'My Orders', icon: ClipboardList },
-    { id: 'emergency', label: 'Emergency Services', icon: AlertTriangle },
     { id: 'ai-assistant', label: 'AI Assistant', icon: Bot, badge: 'New', badgeColor: 'bg-accent-600' },
     { id: 'profile', label: 'My Profile', icon: UserCircle },
   ];

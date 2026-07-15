@@ -15,7 +15,6 @@ import Transactions from './components/Transactions';
 import Profile from './components/Profile';
 import AIChat from './components/AIChat';
 import Customers from './components/Customers';
-import EmergencyPage from './components/EmergencyPage';
 import './App.css';
 
 // ===== PROTECTED ROUTE WRAPPERS =====
@@ -81,7 +80,6 @@ function CustomerDashboardWrapper() {
       case 'dashboard': return <CustomerDashboard setCurrentTab={setCurrentTab} />;
       case 'shop': return <Sales />;
       case 'orders': return <Transactions />;
-      case 'emergency': return <EmergencyPage />;
       case 'ai-assistant': return <AIChat />;
       case 'profile': return <Profile />;
       default: return <CustomerDashboard setCurrentTab={setCurrentTab} />;

@@ -17,7 +17,7 @@ export default function EmergencyPage() {
   const firstAidGuidelines = [
     {
       title: 'CPR (Cardiopulmonary Resuscitation)',
-      icon: '❤️',
+      icon: 'Γ¥ñ∩╕Å',
       steps: [
         'Call 108/112 immediately for emergency support.',
         'Place hands in the center of the chest and push hard & fast (100-120 compressions per minute).',
@@ -27,7 +27,7 @@ export default function EmergencyPage() {
     },
     {
       title: 'Severe Bleeding Control',
-      icon: '🩹',
+      icon: '≡ƒ⌐╣',
       steps: [
         'Apply direct pressure to the wound using a clean cloth or bandage.',
         'Elevate the injured limb above heart level if possible.',
@@ -37,7 +37,7 @@ export default function EmergencyPage() {
     },
     {
       title: 'Thermal & Chemical Burns',
-      icon: '🔥',
+      icon: '≡ƒöÑ',
       steps: [
         'Cool the burn immediately with cool running tap water for 10-20 minutes.',
         'Do not apply ice, butter, toothpaste, or oil (this traps heat).',
@@ -47,7 +47,7 @@ export default function EmergencyPage() {
     },
     {
       title: 'Fractures & Sprains',
-      icon: '🦴',
+      icon: '≡ƒª┤',
       steps: [
         'Keep the injured area still and avoid attempting to realign the bone.',
         'Apply a cold pack wrapped in a cloth to reduce swelling.',
@@ -90,7 +90,7 @@ export default function EmergencyPage() {
             <div className="card p-5 bg-gradient-to-br from-red-50/50 to-rose-50/40 dark:from-red-955/20 dark:to-transparent border border-red-100 dark:border-red-900/40 rounded-3xl flex flex-col justify-between shadow-sm">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl">🚑</span>
+                  <span className="text-2xl">≡ƒÜæ</span>
                   <div>
                     <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Ambulance Dispatch</h3>
                     <p className="text-[11px] text-gray-400">Emergency support & patient transport</p>
@@ -116,7 +116,7 @@ export default function EmergencyPage() {
             <div className="card p-5 bg-gradient-to-br from-green-50/50 to-emerald-50/40 dark:from-green-955/20 dark:to-transparent border border-green-100 dark:border-green-900/40 rounded-3xl flex flex-col justify-between shadow-sm">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl">🏪</span>
+                  <span className="text-2xl">≡ƒÅ¬</span>
                   <div>
                     <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Pharmacy SOS desk</h3>
                     <p className="text-[11px] text-gray-400">Express delivery & medical assistance</p>
@@ -163,8 +163,8 @@ export default function EmergencyPage() {
                   </div>
                   <ul className="space-y-2 flex-1">
                     {guide.steps.map((step, sIdx) => (
-                      <li key={sIdx} className="flex items-start gap-2 text-[11px] text-gray-600 leading-relaxed">
-                        <span className="text-primary-500 font-bold shrink-0 mt-0.5">✔</span>
+                      <li key={sIdx} className="flex items-start gap-2 text-[11px] text-gray-650 leading-relaxed">
+                        <span className="text-primary-500 font-bold shrink-0 mt-0.5">Γ£ö</span>
                         <span>{step}</span>
                       </li>
                     ))}
@@ -192,8 +192,8 @@ export default function EmergencyPage() {
               <div className="bg-gray-50/50 p-3 rounded-2xl border border-gray-100/60 flex flex-col space-y-3">
                 <div className="flex items-start justify-between min-w-0">
                   <div>
-                    <h4 className="text-xs font-bold text-gray-800 truncate">City Hospital - Bhongir</h4>
-                    <p className="text-[10px] text-gray-400 mt-0.5">Distance: ~2.5 km • Trauma Center</p>
+                    <h4 className="text-xs font-bold text-gray-850 truncate">City Hospital - Bhongir</h4>
+                    <p className="text-[10px] text-gray-400 mt-0.5">Distance: ~2.5 km ΓÇó Trauma Center</p>
                   </div>
                 </div>
                 <a 
@@ -210,8 +210,8 @@ export default function EmergencyPage() {
               <div className="bg-gray-50/50 p-3 rounded-2xl border border-gray-100/60 flex flex-col space-y-3">
                 <div className="flex items-start justify-between min-w-0">
                   <div>
-                    <h4 className="text-xs font-bold text-gray-800 truncate">Apollo Clinic - Hyderabad</h4>
-                    <p className="text-[10px] text-gray-400 mt-0.5">Distance: ~12 km • Multi-specialty</p>
+                    <h4 className="text-xs font-bold text-gray-855 truncate">Apollo Clinic - Hyderabad</h4>
+                    <p className="text-[10px] text-gray-400 mt-0.5">Distance: ~12 km ΓÇó Multi-specialty</p>
                   </div>
                 </div>
                 <a 

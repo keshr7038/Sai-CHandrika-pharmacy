@@ -162,11 +162,10 @@ export default function CustomerDashboard({ setCurrentTab }) {
         </div>
       </section>
 
-      {/* ===== MY RECENT ORDERS & EMERGENCY SERVICES ===== */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: My Recent Orders (spanning 2 columns on desktop) */}
-        <div className={myOrders.length > 0 ? "lg:col-span-2 space-y-4" : "hidden"}>
-          <div className="flex items-center justify-between">
+      {/* ===== MY RECENT ORDERS (if any) ===== */}
+      {myOrders.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-gray-800">My Recent Orders</h2>
             <button onClick={() => setCurrentTab('orders')} className="text-sm font-semibold text-primary-600 hover:underline flex items-center gap-1">
               View All <ArrowRight className="w-4 h-4" />
@@ -193,95 +192,8 @@ export default function CustomerDashboard({ setCurrentTab }) {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Right: Emergency Services (spanning 1 column, or 3 columns if no orders) */}
-        <div className={myOrders.length > 0 ? "lg:col-span-1" : "lg:col-span-3"}>
-          <div className="card p-4 h-full space-y-4 border-red-100 bg-red-50/5">
-            <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-              <span className="text-lg">🚨</span>
-              <h2 className="text-sm font-black text-gray-800 uppercase tracking-wider">Emergency Services</h2>
-            </div>
-            
-            {/* 1. Ambulance Services */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs">🚑</span>
-                <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Ambulance Services</h4>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <a href="tel:108" className="bg-red-600 hover:bg-red-700 text-white rounded-xl py-2 px-3 flex items-center justify-center gap-1.5 shadow-sm text-xs font-bold transition-all text-center">
-                  Call Ambulance
-                </a>
-                <a href="https://www.google.com/maps/search/?api=1&query=ambulance+services+near+me" target="_blank" rel="noreferrer" className="btn-outline text-red-650 border-red-200 hover:bg-red-50/30 btn-sm py-2 rounded-xl flex items-center justify-center gap-1 text-center font-bold">
-                  Nearest Ambulance Map Link
-                </a>
-              </div>
-            </div>
-
-            {/* 2. Nearby Hospitals */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs">🏥</span>
-                <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nearby Hospitals</h4>
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between bg-gray-50 p-2 rounded-xl border border-gray-100">
-                  <span className="font-semibold text-gray-700 text-[11px] truncate">City Hospital</span>
-                  <a href="https://www.google.com/maps/search/?api=1&query=City+Hospital+Bhongir" target="_blank" rel="noreferrer" className="text-xs text-primary-600 font-bold hover:underline">
-                    View Map
-                  </a>
-                </div>
-                <div className="flex items-center justify-between bg-gray-50 p-2 rounded-xl border border-gray-100">
-                  <span className="font-semibold text-gray-700 text-[11px] truncate">Apollo Clinic</span>
-                  <a href="https://www.google.com/maps/search/?api=1&query=Apollo+Clinic+Hyderabad" target="_blank" rel="noreferrer" className="text-xs text-primary-600 font-bold hover:underline">
-                    View Map
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. Pharmacy Emergency Contact */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs">📞</span>
-                <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pharmacy Emergency Contact</h4>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <a href="tel:+919876543210" className="bg-primary-600 hover:bg-primary-700 text-white rounded-xl py-2 px-3 flex items-center justify-center gap-1.5 shadow-sm text-xs font-bold transition-all text-center">
-                  Call Medical Shop
-                </a>
-                <a href="https://wa.me/919876543210?text=I%20need%20emergency%20medical%20assistance" target="_blank" rel="noreferrer" className="bg-green-600 hover:bg-green-700 text-white rounded-xl py-2 px-3 flex items-center justify-center gap-1.5 shadow-sm text-xs font-bold transition-all text-center">
-                  WhatsApp Chat
-                </a>
-              </div>
-            </div>
-
-            {/* 4. Emergency Tips */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs">💡</span>
-                <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Emergency Tips</h4>
-              </div>
-              <ul className="space-y-1 bg-gray-50 p-2.5 rounded-xl border border-gray-100 text-[11px] text-gray-600">
-                <li className="flex items-center gap-1.5">
-                  <span className="text-green-500 font-bold">✔</span>
-                  <span>Keep first-aid kit ready</span>
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="text-green-500 font-bold">✔</span>
-                  <span>Save emergency numbers</span>
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <span className="text-green-500 font-bold">✔</span>
-                  <span>Know nearest hospital routes</span>
-                </li>
-              </ul>
-            </div>
-
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ===== QUICK STATS FOR CUSTOMER ===== */}
       <section className="grid grid-cols-3 gap-4">
