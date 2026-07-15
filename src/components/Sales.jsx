@@ -1,6 +1,7 @@
 import React, { useState, useContext, useMemo } from 'react';
 import { AppContext, getSheetDisplay } from '../context/AppContext';
 import InvoiceModal from './InvoiceModal';
+import QuantitySelector from './QuantitySelector';
 import {
   Search,
   ShoppingCart,
@@ -390,15 +391,16 @@ export default function Sales() {
                       </span>
                     </div>
 
-                    {/* Add to Cart Button */}
-                    <button
-                      onClick={() => addToCart(med)}
-                      disabled={isOutOfStock}
-                      className="btn-primary btn-sm w-full justify-center"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      Add to Cart
-                    </button>
+                    {/* Quantity Selector / Add to Cart Button */}
+                    <div className="w-full">
+                      <QuantitySelector
+                        medicine={med}
+                        cart={cart}
+                        addToCart={addToCart}
+                        removeFromCart={removeFromCart}
+                        updateCartQuantity={updateCartQuantity}
+                      />
+                    </div>
                   </div>
                 );
               })}

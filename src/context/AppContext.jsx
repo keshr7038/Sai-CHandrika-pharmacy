@@ -85,7 +85,17 @@ export const AppProvider = ({ children }) => {
   const [vendors, setVendors] = useState([]);
   const [sales, setSales] = useState([]);
   const [purchases, setPurchases] = useState([]);
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem('saichandrika_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  useEffect(() => {
+    localStorage.setItem('saichandrika_cart', JSON.stringify(cart));
+  }, [cart]);
   const [smsLogs, setSmsLogs] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [twilioConfig, setTwilioConfigState] = useState(getTwilioConfig);

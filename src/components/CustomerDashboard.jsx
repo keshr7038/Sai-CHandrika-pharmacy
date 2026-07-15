@@ -1,6 +1,7 @@
 import React, { useContext, useState, useMemo } from 'react';
 import { AppContext, getSheetDisplay } from '../context/AppContext';
 import FirstAidKitsSection from './FirstAidKitsSection';
+import QuantitySelector from './QuantitySelector';
 import {
   Search, ShoppingBag, Heart, Shield, Stethoscope, FlaskConical,
   ArrowRight, Pill, Star, TrendingUp, Clock, ShoppingCart,
@@ -20,7 +21,7 @@ const healthCategories = [
 
 
 export default function CustomerDashboard({ setCurrentTab }) {
-  const { medicines, sales, user, addToCart, cart } = useContext(AppContext);
+  const { medicines, sales, user, addToCart, cart, removeFromCart, updateCartQuantity } = useContext(AppContext);
   const [searchTerm, setSearchTerm] = useState('');
 
   const availableMeds = useMemo(() =>
@@ -135,19 +136,15 @@ export default function CustomerDashboard({ setCurrentTab }) {
                     <p className="text-base font-bold text-primary-700">{formatCurrency(med.sellingPrice)}</p>
                     <p className="text-[10px] text-gray-400 line-through">{formatCurrency(med.sellingPrice * 1.2)}</p>
                   </div>
-                  <button
-                    onClick={() => addToCart(med)}
-                    disabled={med.stock <= 0}
-                    className="btn-primary btn-sm relative"
-                  >
-                    <ShoppingCart className="w-3.5 h-3.5" />
-                    <span>Add</span>
-                    {inCartQty > 0 && (
-                      <span className="absolute -top-2 -right-2 w-5 h-5 bg-accent-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                        {inCartQty}
-                      </span>
-                    )}
-                  </button>
+                  <div className="w-24">
+                    <QuantitySelector
+                      medicine={med}
+                      cart={cart}
+                      addToCart={addToCart}
+                      removeFromCart={removeFromCart}
+                      updateCartQuantity={updateCartQuantity}
+                    />
+                  </div>
                 </div>
               </div>
             );
