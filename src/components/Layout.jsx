@@ -7,13 +7,15 @@ import {
   ChevronDown, Check, AlertTriangle, Info, CheckCircle,
   Home, ShoppingBag, ClipboardList, Sparkles, Users, CalendarDays, Stethoscope
 } from 'lucide-react';
+import CartDrawer from './CartDrawer';
 
 export default function Layout({ children, currentTab, setCurrentTab }) {
   const navigate = useNavigate();
-  const { user, logout, darkMode, toggleDarkMode, medicines, notifications, markNotificationRead, clearNotifications, realtimeStatus } = useContext(AppContext);
+  const { user, logout, darkMode, toggleDarkMode, medicines, notifications, markNotificationRead, clearNotifications, realtimeStatus, cart } = useContext(AppContext);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const notifRef = useRef(null);
   const profileRef = useRef(null);
 
@@ -140,6 +142,20 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
               Reconnecting...
             </span>
           )}
+
+          {/* Cart Icon */}
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="relative p-2 rounded-lg text-white/70 hover:bg-white/10 transition-colors cursor-pointer mr-1"
+            title="Open Cart"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            {cart.length > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 bg-emerald-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                {cart.reduce((sum, item) => sum + item.quantity, 0)}
+              </span>
+            )}
+          </button>
 
           {/* Notification Bell */}
           <div ref={notifRef} className="relative">
@@ -384,6 +400,9 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
           {children}
         </div>
       </main>
+
+      {/* Global Cart Drawer */}
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </div>
   );
 }
