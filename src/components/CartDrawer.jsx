@@ -9,7 +9,7 @@ import InvoiceModal from './InvoiceModal';
 export default function CartDrawer({ isOpen, onClose }) {
   const { 
     user, cart, updateCartQuantity, removeFromCart, clearCart, 
-    generateBill, sales, addNotification 
+    generateBill, sales, addNotification, cancelPendingSale
   } = useContext(AppContext);
 
   // Form inputs for Owner/Staff Checkout
@@ -157,13 +157,8 @@ export default function CartDrawer({ isOpen, onClose }) {
 
   const handleCancelOrFailedPayment = async () => {
     if (paymentSaleId) {
-      const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:5000' : '';
       try {
-        await fetch(`${apiBase}/api/payments/cancel-sale`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sale_id: paymentSaleId })
-        });
+        await cancelPendingSale(paymentSaleId);
       } catch (err) {
         console.warn("Failed to cancel pending sale:", err.message);
       }
@@ -171,8 +166,16 @@ export default function CartDrawer({ isOpen, onClose }) {
     setPaymentStatus('none');
   };
 
-  const handleCloseFailedPayment = () => {
+  const handleCloseFailedPayment = async () => {
+    if (paymentSaleId) {
+      try {
+        await cancelPendingSale(paymentSaleId);
+      } catch (err) {
+        console.warn("Failed to cancel pending sale:", err.message);
+      }
+    }
     setPaymentStatus('none');
+    setPaymentSaleId(null);
   };
 
   if (!isOpen) return null;
