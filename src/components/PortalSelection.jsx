@@ -164,7 +164,7 @@ export default function UnifiedLogin() {
         setUser(userData);
         localStorage.setItem('saichandrika_user', JSON.stringify(userData));
         addNotification("Logged in successfully as Store Owner!", "success");
-        navigate('/dashboard');
+        navigate('/owner-dashboard');
         return;
       }
 
@@ -206,7 +206,7 @@ export default function UnifiedLogin() {
         // Direct session fallback on network/fetch issue
         const normEmail = email.trim().toLowerCase();
         const isOwner = normEmail === 'keshr7038@gmail.com' || normEmail.includes('owner') || role === 'owner';
-        const targetPath = isOwner ? '/dashboard' : '/customer-dashboard';
+        const targetPath = isOwner ? '/owner-dashboard' : '/customer-dashboard';
         const userData = {
           id: `${isOwner ? 'owner' : 'cust'}_${Date.now()}`,
           name: isOwner ? 'Store Owner' : normEmail.split('@')[0],
