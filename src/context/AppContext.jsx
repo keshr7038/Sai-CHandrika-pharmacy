@@ -232,20 +232,6 @@ export const AppProvider = ({ children }) => {
           console.warn("Could not load payments:", paymentsErr.message);
         }
       }
-
-      // Load Appointments (visible to both roles)
-      try {
-        if (user.role === 'owner') {
-          const { data: apptData, error: apptErr } = await supabase.from('appointments').select('*').order('appointment_date', { ascending: true });
-          if (!apptErr) setAppointments(apptData || []);
-        } else {
-          const { data: apptData, error: apptErr } = await supabase.from('appointments').select('*').eq('customer_email', user.email).order('appointment_date', { ascending: true });
-          if (!apptErr) setAppointments(apptData || []);
-        }
-      } catch (apptLoadErr) {
-        console.warn("Failed to load appointments from Supabase:", apptLoadErr.message);
-      }
-
     } catch (err) {
       console.error('Failed to load data from Supabase:', err);
       setDbError(err.message || 'Failed to connect to database');
@@ -272,61 +258,11 @@ export const AppProvider = ({ children }) => {
   const markNotificationRead = (id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   const clearNotifications = () => setNotifications([]);
 
-  // Supabase Realtime Subscription Effect
+  // Supabase Realtime Connection Status
   useEffect(() => {
     if (!user) return;
-    
     setRealtimeStatus('connected');
-
-    const channel = supabase
-      .channel('appointments-realtime-channel')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'appointments' },
-        (payload) => {
-          console.log('Appointments postgres event received:', payload);
-          if (payload.eventType === 'INSERT') {
-            const newAppt = payload.new;
-            if (user.role === 'customer' && newAppt.customer_email !== user.email) {
-              return;
-            }
-            
-            setAppointments(prev => {
-              if (prev.some(a => a.id === newAppt.id)) return prev;
-              return [...prev, newAppt];
-            });
-
-            setHighlightedApptId(newAppt.id);
-            setTimeout(() => setHighlightedApptId(null), 3000);
-
-            addNotification(`📅 New Appointment Booked: ${newAppt.patient_name} (ID: ${newAppt.id})`, 'info');
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedAppt = payload.new;
-            if (user.role === 'customer' && updatedAppt.customer_email !== user.email) {
-              return;
-            }
-            
-            setAppointments(prev => prev.map(a => a.id === updatedAppt.id ? updatedAppt : a));
-            addNotification(`📅 Appointment ${updatedAppt.id} status updated to: ${updatedAppt.status}`, 'info');
-          } else if (payload.eventType === 'DELETE') {
-            const oldAppt = payload.old;
-            setAppointments(prev => prev.filter(a => a.id !== oldAppt.id));
-            addNotification(`❌ Appointment ${oldAppt.id} has been removed.`, 'warning');
-          }
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          setRealtimeStatus('connected');
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          setRealtimeStatus('reconnecting');
-        }
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, addNotification]);
+  }, [user]);
 
 
   // =============================================
