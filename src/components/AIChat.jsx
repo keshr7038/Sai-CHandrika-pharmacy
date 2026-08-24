@@ -8,8 +8,6 @@ import {
   Calendar,
   TrendingUp,
   Truck,
-  Heart,
-  HelpCircle,
   Sparkles,
   MessageSquare,
 } from 'lucide-react';
@@ -19,8 +17,6 @@ const QUICK_ACTIONS = [
   { label: 'Expiry Alerts', icon: Calendar, query: 'Expiry alerts', color: 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400' },
   { label: 'Sales Report', icon: TrendingUp, query: 'Sales report', color: 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400' },
   { label: 'Vendor Status', icon: Truck, query: 'Vendor status', color: 'bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400' },
-  { label: 'Health Tips', icon: Heart, query: 'Health tips', color: 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400' },
-  { label: 'Get Help', icon: HelpCircle, query: 'What can you help with?', color: 'bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-400' },
 ];
 
 /**
